@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Andrea Dodet</title>
+    <link>https://example.com/posts/</link>
+    <description>Recent content in Posts on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <copyright>2019 Andrea dodet</copyright>
+    <lastBuildDate>Wed, 08 Jan 2020 11:04:55 +0100</lastBuildDate>
+    
+	<atom:link href="https://example.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Test Post</title>
+      <link>https://example.com/posts/test-post/</link>
+      <pubDate>Wed, 08 Jan 2020 11:04:55 +0100</pubDate>
+      
+      <guid>https://example.com/posts/test-post/</guid>
+      <description>This is a test code block in R
+df1 %&amp;gt;% mutate(Group_1 = paste0(Group_1, &amp;#34;(&amp;#34;, Group_1_Pos, &amp;#34;)&amp;#34;), Group_2 = paste0(Group_2, &amp;#34;(&amp;#34;, Group_2_Pos, &amp;#34;)&amp;#34;), Group_3 = paste0(Group_3, &amp;#34;(&amp;#34;, Group_3_Pos, &amp;#34;)&amp;#34;),) %&amp;gt;% select(-contains(&amp;#34;Pos&amp;#34;)) </description>
+    </item>
+    
+  </channel>
+</rss>
