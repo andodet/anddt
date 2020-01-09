@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Andrea Dodet</title>
+    <link>/post/</link>
+    <description>Recent content in Posts on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <copyright>2020 Andrea dodet</copyright>
+    <lastBuildDate>Wed, 08 Jan 2020 20:36:36 +0100</lastBuildDate>
+    
+        <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Experiments</title>
+      <link>/post/experiments/</link>
+      <pubDate>Wed, 08 Jan 2020 20:36:36 +0100</pubDate>
+      
+      <guid>/post/experiments/</guid>
+      <description>I&#39;ve always found well-written essays particularly fascinating, to the point that I&#39;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.</description>
+    </item>
+    
+  </channel>
+</rss>
