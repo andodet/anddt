@@ -511,8 +511,8 @@ activity we’re performing. This predictions can be found in the nested
 dataframes located in the `activity` column. I will only look at
 **2018** as unnesting large amounts of nested data can take quite a
 while. Surprisingly enough, it looks like I’ve spent most of my time
-*activity*, without knowing how this predictions are produced it’s hard
-to tell whether or not it is accurate.
+still, which does make sense, given I spend most of my time sitting at a desk. 
+Without knowing how this predictions are produced it’s hard to tell whether or not it is accurate.
 
 ``` r
 activities <- bind_rows(data$activity)  # Get df of activities
