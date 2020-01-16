@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Digging into Google location history&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.5731dddd7723a5a3ea36622dc84f8c31437ee55511d1a0b636f5697173137a3deb04832b74be16c8e62fefb8521a3899.css" integrity="sha384-VzHd3XcjpaPqNmItyE&#43;MMUN&#43;5VUR0aC2NvVpcXMTej3rBIMrdL4WyOYv77hSGjiZ"><body>
+    <div class="base-body"><section id="header" class="site header max-body-width">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
+        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
+    <h1 class="article title">Digging into Google location history</h1><p class="article date">Wednesday, January 8, 2020</p></section><article class="article markdown-body"><ul>
+<li><a href="#setup">Setup</a></li>
+<li><a href="#data-preprocess">Data preprocess</a></li>
+<li><a href="#how-big-is-the-dataset">How big is the dataset?</a></li>
+<li><a href="#time-distribution">Time distribution</a></li>
+<li><a href="#data-accuracy">Data accuracy</a></li>
+<li><a href="#plot-data-on-maps">Plot data on maps</a></li>
+<li><a href="#handmade-geocoding---time-spent-by-city">Handmade Geocoding - Time spent by
+city</a></li>
+<li><a href="#where-was-the-data-collected-and-for-how-long">Where was the data collected and for how
+long?</a></li>
+<li><a href="#total-distance">Total distance</a></li>
+<li><a href="#activities">Activities</a></li>
+<li><a href="#extras---animations">Extras - Animations</a></li>
+</ul>
+<p>By the end of the year I received a mail from Google with a recap of my
+location history for 2019 and didn’t pay much attention to it right away
+( other than thinking to turn location services off for good). Since the
+data is available (you can download from <a href="https://takeout.google.com/settings/takeout"target="_blank">Google
+Takeout</a>), I thought it’d
+be fun to poke into it and get something out of it.<br>
+I’ve ditched my iPhone 4s in 2013 and sticked to Android ever since,
+totaling almost 6 full years worth of location history
+(<code>Takeout/Location History.json</code> totals ~420mb). Since dealing with
+large json files can be slow in R, exporting a serialized dataset with
+<code>saveRDS</code> can speed things up a fair bit.</p>
+<p>The raw notebook can be found in <a href="https://github.com/andodet/notebooks/blob/master/location-history/location-history.md"target="_blank">this</a> github repo.</p>
+<h2 id="setup">Setup</h2>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">options</span><span class="p">(</span><span class="n">scipen</span> <span class="o">=</span> <span class="m">999</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">jsonlite</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">gridExtra</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">scales</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ggmap</span><span class="p">)</span>  <span class="c1"># to draw fancy maps</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span>  <span class="c1"># to calc distances between latlon</span>
+</code></pre></div><p><code>ggmap</code> will require providing Google API key (billing will need to be
+set up and a credit card will be required). This can be done in two
+ways:</p>
+<ul>
+<li>exporting an environment variable via <code>export GMAPS_API_TOKEN=&quot;your_token_string</code>.</li>
+<li>reading the token from an <code>.env</code> file I put in the project
+directory. I will favor this method since I don’t really like to
+export a variable in <code>~/.zshrc</code> for a one-off analysis.<br>
+<strong>For the love of god, remember to add that file to <code>.gitignore</code> to
+avoid accidentally pushing it to Github.</strong></li>
+</ul>
+<!-- end list -->
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Set gMaps api key</span>
+<span class="nf">register_google</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="nf">read.dcf</span><span class="p">(</span>
+  <span class="s">&#34;</span><span class="s">.env&#34;</span><span class="p">,</span>
+  <span class="n">fields</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">GMAPS_API_TOKEN&#34;</span>
+<span class="p">)</span><span class="p">)</span>
+</code></pre></div><h2 id="data-preprocess">Data preprocess</h2>
+<p>Data comes out with a number of nested fields so we’ll need to flatten
+the json fille after reading it into memory.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">data</span> <span class="o">&lt;-</span> <span class="nf">fromJSON</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Takeout/Location History/Location History.json&#34;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">&lt;-</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">locations</span><span class="p">)</span>
+</code></pre></div><p>In order to be consumed, couple adjustments are needed:</p>
+<ul>
+<li>converting timestamps to <code>UNIX</code> format</li>
+<li>converting lat-lon coordinates to GPS format to be able to draw maps</li>
+</ul>
+<!-- end list -->
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Convert timestamps to UNIX format</span>
+<span class="n">norm_ts</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nf">as.POSIXct</span><span class="p">(</span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="m">1000</span><span class="p">,</span>
+             <span class="n">origin</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">1970-01-01&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># Normalise timestamps</span>
+<span class="n">data</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">timestampMs</span> <span class="o">=</span> <span class="nf">norm_ts</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">)</span><span class="p">,</span>
+         <span class="n">date</span> <span class="o">=</span> <span class="nf">as.Date</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y-%m-%d&#34;</span><span class="p">)</span><span class="p">)</span>
+
+<span class="c1"># Convert E7 lat lon to GPS coordinates</span>
+<span class="n">data</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">latitudeGPS</span> <span class="o">=</span> <span class="n">latitudeE7</span> <span class="o">/</span> <span class="m">1e7</span><span class="p">,</span>
+         <span class="n">longitudeGPS</span> <span class="o">=</span> <span class="n">longitudeE7</span> <span class="o">/</span> <span class="m">1e7</span><span class="p">)</span>
+</code></pre></div><p>After the transformations mentioned above, the final dataset will have
+the following structure:</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">glimpse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div><pre><code>## Observations: 1,183,157
+## Variables: 12
+## $ timestampMs      &lt;dttm&gt; 2013-12-23 03:18:34, 2013-12-23 03:19:34, 2013-12-2…
+## $ latitudeE7       &lt;int&gt; 418713521, 418713478, 418714064, 418714201, 41871341…
+## $ longitudeE7      &lt;int&gt; 124414861, 124414780, 124415342, 124415539, 12441475…
+## $ accuracy         &lt;int&gt; 14, 34, 30, 30, 32, 32, 32, 30, 32, 30, 28, 30, 28, …
+## $ activity         &lt;list&gt; [NULL, NULL, NULL, &lt;data.frame[1 x 2]&gt;, NULL, &lt;data…
+## $ altitude         &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ velocity         &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ heading          &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ verticalAccuracy &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+## $ date             &lt;date&gt; 2013-12-23, 2013-12-23, 2013-12-23, 2013-12-23, 201…
+## $ latitudeGPS      &lt;dbl&gt; 41.87135, 41.87135, 41.87141, 41.87142, 41.87134, 41…
+## $ longitudeGPS     &lt;dbl&gt; 12.44149, 12.44148, 12.44153, 12.44155, 12.44148, 12…
+</code></pre>
+<ul>
+<li><code>timestamp</code>: original timestamps (in milliseconds) are now converted
+to date objects</li>
+<li><code>accuracy</code>: the distance around the point in meters</li>
+<li><code>verticalAccuracy</code>: accuracy measured on a vertical dimension (in
+meters)</li>
+<li><code>activity</code>: a list of nested dataframes with an inference on the
+type of activity (analysed further down)</li>
+<li><code>latitudeGPS</code>: latitude converted to GPS format</li>
+<li><code>longitudeGPS</code>: same as above for longitude values</li>
+</ul>
+<h2 id="how-big-is-the-dataset">How big is the dataset?</h2>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">min</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">)</span>
+</code></pre></div><pre><code>## [1] &quot;2013-12-23 03:18:34 CET&quot;
+</code></pre>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">max</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">)</span>
+</code></pre></div><pre><code>## [1] &quot;2020-01-13 18:07:27 CET&quot;
+</code></pre>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">time_diff</span> <span class="o">&lt;-</span> <span class="nf">max</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">)</span> <span class="o">-</span> <span class="nf">min</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">)</span>
+<span class="n">n_points</span> <span class="o">&lt;-</span> <span class="nf">nrow</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div><p>It seems that Google has collected 1183157 over a period of 2212.62 days
+(or 6.06 years).</p>
+<h2 id="time-distribution">Time distribution</h2>
+<p>For some reason the number of data points collected falls sharply during
+summer ’17. Around that time I was moving back to Italy (after around
+five years spent in Denmark and the UK). During that time I was
+job-hunting and have moved aronud less frequently, it would be
+interesting to understand if a less dynamic lifestyle is negatively
+correlated to the number of data points collected.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Get points collected over time</span>
+<span class="n">dp_trend</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">year_month</span> <span class="o">=</span> <span class="nf">as.Date</span><span class="p">(</span><span class="nf">format</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y-%m-01&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">obs</span> <span class="o">=</span> <span class="nf">n</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+
+<span class="c1"># Get points collected by year, month and day</span>
+<span class="n">dp_daily</span> <span class="o">&lt;-</span> <span class="nf">data.frame</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span>
+  <span class="nf">format</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y-%m-%d&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">day&#34;</span><span class="p">)</span>
+
+<span class="n">dp_monthly</span> <span class="o">&lt;-</span> <span class="nf">data.frame</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span>
+  <span class="nf">format</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y-%m&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">month&#34;</span><span class="p">)</span>
+
+<span class="n">dp_yearly</span> <span class="o">&lt;-</span> <span class="nf">data.frame</span><span class="p">(</span><span class="nf">table</span><span class="p">(</span>
+  <span class="nf">format</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">year&#34;</span><span class="p">)</span>
+
+<span class="n">dp</span> <span class="o">&lt;-</span> <span class="nf">rbind</span><span class="p">(</span><span class="n">dp_daily</span><span class="n">[</span><span class="p">,</span><span class="m">-1</span><span class="n">]</span><span class="p">,</span> <span class="n">dp_monthly</span><span class="n">[</span><span class="p">,</span><span class="m">-1</span><span class="n">]</span><span class="p">,</span> <span class="n">dp_yearly</span><span class="n">[</span><span class="p">,</span><span class="m">-1</span><span class="n">]</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Data points collected over time</span>
+<span class="n">trend</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">dp_trend</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">year_month</span><span class="p">,</span> <span class="n">obs</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_bar</span><span class="p">(</span><span class="n">stat</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">identity&#34;</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">tomato&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_y_continuous</span><span class="p">(</span><span class="n">breaks</span> <span class="o">=</span> <span class="nf">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span> <span class="nf">max</span><span class="p">(</span><span class="n">dp_trend</span><span class="o">$</span><span class="n">obs</span><span class="p">)</span><span class="p">,</span> <span class="m">2000</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_x_date</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nf">date_format</span><span class="p">(</span><span class="s">&#34;</span><span class="s">%Y-%m&#34;</span><span class="p">)</span><span class="p">,</span> <span class="n">breaks</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">3 month&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Number of data points collected over time&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Year-Month&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">n. Data points&#34;</span><span class="p">)</span>
+
+<span class="c1"># Daily, monthly, yearly collected data points</span>
+<span class="n">time_dist</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">dp</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">Freq</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_point</span><span class="p">(</span><span class="n">position</span> <span class="o">=</span> <span class="nf">position_jitter</span><span class="p">(</span><span class="n">width</span> <span class="o">=</span> <span class="m">0.2</span><span class="p">)</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="m">.3</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_boxplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">colour</span> <span class="o">=</span> <span class="n">group</span><span class="p">)</span><span class="p">,</span> <span class="n">outlier.colour</span> <span class="o">=</span> <span class="kc">NA</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">facet_grid</span><span class="p">(</span><span class="n">group</span> <span class="o">~</span> <span class="n">.,</span> <span class="n">scales</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">free&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Distribution of collected data points&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">period&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">n. data points&#34;</span><span class="p">)</span>
+
+<span class="nf">grid.arrange</span><span class="p">(</span><span class="n">trend</span><span class="p">,</span> <span class="n">time_dist</span><span class="p">,</span> <span class="n">nrow</span> <span class="o">=</span> <span class="m">1</span><span class="p">)</span>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /></p>
+<h2 id="data-accuracy">Data accuracy</h2>
+<p>As mentioned above, the dataset contains an <code>accuracy</code> field we can use
+to get a rough sense of how accurate the collected data is. The most
+accurate measurements fall in the region of +/- 60mt, with the vast
+majority of observations falling in the <em>accurate</em> category. From the
+graph below, it seems there are periods of time (specifically during the
+summer period) where accuracy degrades consistently. I do believe that
+this might be caused by the fact that I spent the last few summer breaks
+in places with sub par network connection, hence the GPS might have had a
+hard time pinpointing my exact location.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Create accuracy categorical variable =</span>
+<span class="n">acc</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span>
+  <span class="n">dplyr</span><span class="o">::</span><span class="nf">select</span><span class="p">(</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">timestampMs</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">latitudeGPS</span><span class="p">,</span> <span class="n">longitudeGPS</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="nf">is.na</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">filter</span><span class="p">(</span><span class="n">accuracy</span> <span class="o">&lt;=</span> <span class="m">30000</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">accuracy_g</span> <span class="o">=</span> <span class="nf">factor</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="nf">case_when</span><span class="p">(</span><span class="n">accuracy</span> <span class="o">&lt;</span> <span class="m">800</span> <span class="o">~</span> <span class="s">&#34;</span><span class="s">high&#34;</span><span class="p">,</span>
+                                            <span class="n">accuracy</span> <span class="o">&lt;</span> <span class="m">5000</span> <span class="o">~</span> <span class="s">&#34;</span><span class="s">mid&#34;</span><span class="p">,</span>
+                                            <span class="kc">TRUE</span> <span class="o">~</span> <span class="s">&#34;</span><span class="s">low&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">,</span>
+                             <span class="n">levels</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;</span><span class="s">low&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">mid&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">high&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+
+<span class="c1"># Accuracy by week</span>
+<span class="n">acc_weekly</span> <span class="o">&lt;-</span> <span class="n">acc</span> <span class="o">%&gt;%</span> 
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">date</span> <span class="o">=</span> <span class="nf">cut.Date</span><span class="p">(</span><span class="nf">as.Date</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y-%m-%d&#34;</span><span class="p">)</span><span class="p">,</span>
+                           <span class="s">&#34;</span><span class="s">week&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>  
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">avg_accuracy</span> <span class="o">=</span> <span class="nf">mean</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Plot accuracy distribution</span>
+<span class="n">acc_dist</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">accuracy_g</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_histogram</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_x_log10</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">facet_grid</span><span class="p">(</span><span class="n">accuracy_g</span> <span class="o">~</span> <span class="n">.,</span> <span class="n">scales</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">free&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Accuracy Distribution&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">log. accuracy (meters)&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">n. observation&#34;</span><span class="p">)</span>
+
+<span class="c1"># Plot weekly accuracy</span>
+<span class="n">acc_trend</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">acc_weekly</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="nf">as.Date</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="p">,</span> <span class="n">avg_accuracy</span><span class="p">,</span> <span class="n">group</span> <span class="o">=</span> <span class="m">1</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_line</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_x_date</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nf">date_format</span><span class="p">(</span><span class="s">&#34;</span><span class="s">%Y-%m&#34;</span><span class="p">)</span><span class="p">,</span> <span class="n">breaks</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">3 month&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Accuracy over time&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">month&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">avg. accuract (lower is better)&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">)</span><span class="p">)</span>
+
+<span class="nf">grid.arrange</span><span class="p">(</span><span class="n">acc_dist</span><span class="p">,</span> <span class="n">acc_trend</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">1</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/accuracy_plots-1.png"><img  src="/images/2020-01-16-location-history/accuracy_plots-1.png"
+        alt/></a><!-- --></p>
+<h2 id="plot-data-on-maps">Plot data on maps</h2>
+<p>Over the past 7 years I had the lucky opportunity to study and work in 3
+European cities (Milan, Copenhagen and London). Using
+<a href="https://github.com/dkahle/ggmap"target="_blank"><code>ggmap</code></a> we can easily plot location
+data on maps using the good old <code>ggplot</code> syntax.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Retrieve maps from Google Maps api</span>
+<span class="n">maps</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
+  <span class="n">Europe</span>     <span class="o">=</span> <span class="nf">get_map</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Europe&#34;</span><span class="p">,</span> <span class="n">zoom</span> <span class="o">=</span> <span class="m">4</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">Italy</span>      <span class="o">=</span> <span class="nf">get_map</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Italy&#34;</span><span class="p">,</span> <span class="n">zoom</span> <span class="o">=</span> <span class="m">6</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">London</span>     <span class="o">=</span> <span class="nf">get_map</span><span class="p">(</span><span class="s">&#34;</span><span class="s">London&#34;</span><span class="p">,</span> <span class="n">zoom</span> <span class="o">=</span> <span class="m">12</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">Copenhagen</span> <span class="o">=</span> <span class="nf">get_map</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Copenhagen&#34;</span><span class="p">,</span> <span class="n">zoom</span> <span class="o">=</span> <span class="m">12</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">Rome</span>       <span class="o">=</span> <span class="nf">get_map</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Rome&#34;</span><span class="p">,</span> <span class="n">zoom</span> <span class="o">=</span> <span class="m">12</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Plot points in locations iteratively</span>
+<span class="n">plots</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span><span class="p">)</span>
+<span class="nf">for </span><span class="p">(</span><span class="n">city</span> <span class="n">in</span> <span class="nf">names</span><span class="p">(</span><span class="n">maps</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">p</span> <span class="o">&lt;-</span> <span class="nf">ggmap</span><span class="p">(</span><span class="n">maps</span><span class="n">[</span><span class="n">[city</span><span class="n">]</span><span class="n">]</span><span class="p">)</span> <span class="o">+</span>
+      <span class="nf">geom_point</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">longitudeGPS</span><span class="p">,</span> <span class="n">latitudeGPS</span><span class="p">)</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="m">0.01</span><span class="p">,</span> <span class="n">colour</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">tomato&#34;</span><span class="p">,</span>
+           <span class="n">size</span> <span class="o">=</span> <span class="m">0.6</span><span class="p">)</span> <span class="o">+</span> 
+      <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="nf">paste0</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Locations in &#34;</span><span class="p">,</span> <span class="n">city</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+      <span class="nf">theme</span><span class="p">(</span><span class="n">plot.margin</span> <span class="o">=</span> <span class="nf">unit</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">)</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">cm&#34;</span><span class="p">)</span><span class="p">)</span>
+    
+    <span class="n">plots</span><span class="n">[</span><span class="n">[city</span><span class="n">]</span><span class="n">]</span> <span class="o">&lt;-</span> <span class="n">p</span>
+<span class="p">}</span>
+
+<span class="c1"># Output plots </span>
+<span class="n">plot_grid</span> <span class="o">&lt;-</span> <span class="nf">do.call</span><span class="p">(</span><span class="s">&#34;</span><span class="s">grid.arrange&#34;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">plots</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">)</span><span class="p">)</span>
+<span class="nf">grid.draw</span><span class="p">(</span><span class="n">plot_grid</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/unnamed-chunk-5-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-5-1.png"
+        alt/></a><!-- --></p>
+<p>For the sake of curiosity we can also check for any pattern in data
+accurcacy within a specific city. The same could be done with <code>velocity</code>
+to inspect if there’s any area that registered faster movements (morning
+commute, motorbike trips, etc.).</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Plot accuracy in London</span>
+<span class="n">ldn_acc</span> <span class="o">&lt;-</span> <span class="nf">ggmap</span><span class="p">(</span><span class="n">maps</span><span class="o">$</span><span class="n">London</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">stat_summary_2d</span><span class="p">(</span><span class="n">geom</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">tile&#34;</span><span class="p">,</span> <span class="n">bins</span> <span class="o">=</span> <span class="m">100</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">longitudeGPS</span><span class="p">,</span>
+                                                            <span class="n">latitudeGPS</span><span class="p">,</span>
+                                                            <span class="n">z</span> <span class="o">=</span> <span class="n">accuracy</span><span class="p">)</span><span class="p">,</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="m">0.5</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_fill_gradient</span><span class="p">(</span><span class="n">low</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">blue&#34;</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">red&#34;</span><span class="p">,</span> <span class="nf">guide_legend</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">accuracy&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Data Accuracy (meters) in London&#34;</span><span class="p">)</span>
+
+<span class="n">ldn_acc</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/unnamed-chunk-6-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-6-1.png"
+        alt/></a><!-- --></p>
+<h2 id="handmade-geocoding---time-spent-by-city">Handmade Geocoding - Time spent by city</h2>
+<p>Another question I was interested to answer was how much time did I
+spend in each city I’ve lived in. Sadly the dataset doesn’t have any
+label to mark the city where the data point was collected in. Here I’ve
+evaluated couple strategies to move forward:</p>
+<ul>
+<li>❌️ Use <a href="https://docs.mapbox.com/api/search/"target="_blank">MapBox free geocoding
+API</a> is a no-go as it would
+take too long to process 1.3M rows (request/minute are limited).</li>
+<li>❌ Shell out some money for Google Maps API – wasn’t really feeling
+to hit API quotas or spend recklessly.</li>
+<li>✔ Do it in hacky way using <a href="http://www.partow.net/miscellaneous/airportdatabase/#Download"target="_blank">airport
+coordinates</a>
+as reference points. The underlying logic assumes that if data was
+collected within a range of <strong>50 km</strong> (arbitrary cutoff value), it
+is safe to assume that I was in the the same city where the airport
+is located.</li>
+</ul>
+<p>After downloading, unzipping and reading airport coordinates, they can
+be consumed as lat/lon coordinates.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Download cities coordinates (http://www.partow.net/miscellaneous/airportdatabase/index.html#Downloads)</span>
+<span class="n">tmpFile</span> <span class="o">&lt;-</span> <span class="nf">tempfile</span><span class="p">(</span><span class="p">)</span>
+<span class="nf">download.file</span><span class="p">(</span><span class="s">&#34;</span><span class="s">http://www.partow.net/downloads/GlobalAirportDatabase.zip&#34;</span><span class="p">,</span>
+              <span class="n">tmpFile</span><span class="p">)</span>
+
+<span class="n">airport_coords</span> <span class="o">&lt;-</span> <span class="nf">read.csv</span><span class="p">(</span>
+  <span class="nf">unzip</span><span class="p">(</span><span class="n">tmpFile</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">GlobalAirportDatabase.txt&#34;</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">sep</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">:&#34;</span><span class="p">,</span>
+  <span class="n">stringsAsFactors</span> <span class="o">=</span> <span class="kc">FALSE</span><span class="p">,</span>
+  <span class="n">header</span> <span class="o">=</span> <span class="kc">FALSE</span>
+<span class="p">)</span>
+
+<span class="nf">head</span><span class="p">(</span><span class="nf">as_tibble</span><span class="p">(</span><span class="n">airport_coords</span><span class="p">)</span><span class="p">,</span> <span class="m">3</span><span class="p">)</span>
+</code></pre></div><pre><code>## # A tibble: 3 x 16
+##   V1    V2    V3     V4    V5       V6    V7    V8 V9      V10   V11   V12 V13  
+##   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;chr&gt;
+## 1 AYGA  GKA   GOROKA GORO… PAPU…     6     4    54 S       145    23    30 E    
+## 2 AYLA  LAE   N/A    LAE   PAPU…     0     0     0 U         0     0     0 U    
+## 3 AYMD  MAG   MADANG MADA… PAPU…     5    12    25 S       145    47    19 E    
+## # … with 3 more variables: V14 &lt;int&gt;, V15 &lt;dbl&gt;, V16 &lt;dbl&gt;
+</code></pre>
+<p>Geocoding cities ourselves will involve performing the following steps:</p>
+<ol>
+<li>Compute distances between my location history and the airports</li>
+<li>Finding out which the closest airport is</li>
+<li>Grabbing the city label from the airport dataset.</li>
+</ol>
+<!-- end list -->
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Filter relevant airports</span>
+<span class="n">airport_coords</span> <span class="o">&lt;-</span> <span class="n">airport_coords</span> <span class="o">%&gt;%</span> 
+  <span class="nf">filter</span><span class="p">(</span><span class="n">V2</span> <span class="o">%in%</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;</span><span class="s">FCO&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">MXP&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">LCY&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">CPH&#34;</span><span class="p">)</span><span class="p">)</span>
+
+<span class="c1"># Compute distances</span>
+<span class="n">distmat</span> <span class="o">&lt;-</span> <span class="nf">pointDistance</span><span class="p">(</span>
+  <span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">longitudeGPS</span><span class="p">,</span> <span class="n">data</span><span class="o">$</span><span class="n">latitudeGPS</span><span class="p">)</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">)</span><span class="p">,</span>
+  <span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">airport_coords</span><span class="o">$</span><span class="n">V16</span><span class="p">,</span> <span class="n">airport_coords</span><span class="o">$</span><span class="n">V15</span><span class="p">)</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">lonlat</span> <span class="o">=</span> <span class="kc">TRUE</span>
+  <span class="p">)</span>
+
+<span class="c1"># Get city label and distance to nearest airport</span>
+<span class="n">data</span><span class="o">$</span><span class="n">nearest_airport</span> <span class="o">&lt;-</span> <span class="nf">apply</span><span class="p">(</span>
+  <span class="n">distmat</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="p">{</span>
+    <span class="nf">if </span><span class="p">(</span><span class="n">x</span><span class="nf">[which.min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="n">]</span> <span class="o">&lt;</span> <span class="m">50000</span><span class="p">)</span> <span class="n">airport_coords</span><span class="o">$</span><span class="n">V4</span><span class="nf">[which.min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="n">]</span> <span class="n">else</span> <span class="kc">NA</span>
+  <span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">data</span><span class="o">$</span><span class="n">dist_nearest_airport</span> <span class="o">&lt;-</span> <span class="nf">apply</span><span class="p">(</span><span class="n">distmat</span><span class="p">,</span> <span class="m">1</span><span class="p">,</span> <span class="n">min</span><span class="p">)</span>
+</code></pre></div><p>Which will provide 2 new columns:</p>
+<ul>
+<li><code>dist_nearest_airport</code>: distance (in meters) to the nearest airport,
+selected from a subset</li>
+<li><code>nearest_airport</code>: label with the city where the nearest airport is
+located</li>
+</ul>
+<!-- end list -->
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="n">dplyr</span><span class="o">::</span><span class="nf">select</span><span class="p">(</span><span class="n">latitudeGPS</span><span class="p">,</span> <span class="n">longitudeGPS</span><span class="p">,</span> <span class="n">dist_nearest_airport</span><span class="p">,</span> <span class="n">nearest_airport</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">head</span><span class="p">(</span><span class="m">3</span><span class="p">)</span>
+</code></pre></div><pre><code>##   latitudeGPS longitudeGPS dist_nearest_airport nearest_airport
+## 1    41.87135     12.44149             16943.33            ROME
+## 2    41.87135     12.44148             16942.53            ROME
+## 3    41.87141     12.44153             16949.33            ROME
+</code></pre>
+<h2 id="where-was-the-data-collected-and-for-how-long">Where was the data collected and for how long?</h2>
+<p>It is now possible to plot the number of datapoints collected and the
+number of days spent in each city.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">cities_rank</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">city</span> <span class="o">=</span> <span class="nf">as.factor</span><span class="p">(</span><span class="n">nearest_airport</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">count</span><span class="p">(</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">arrange</span><span class="p">(</span><span class="nf">desc</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="p">)</span>
+
+<span class="n">city_time</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">city</span> <span class="o">=</span> <span class="n">nearest_airport</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">n_days</span> <span class="o">=</span> <span class="nf">n_distinct</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">arrange</span><span class="p">(</span><span class="nf">desc</span><span class="p">(</span><span class="n">n_days</span><span class="p">)</span><span class="p">)</span>
+
+<span class="n">cities_rank_p</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">cities_rank</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="nf">reorder</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="o">-</span><span class="n">n</span><span class="p">)</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">city</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_bar</span><span class="p">(</span><span class="n">stat</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">identity&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Number of data points collected by city&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">city&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">obs&#34;</span><span class="p">)</span>
+
+<span class="n">city_time_p</span> <span class="o">&lt;-</span> <span class="nf">ggplot</span><span class="p">(</span><span class="n">city_time</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="nf">reorder</span><span class="p">(</span><span class="n">city</span><span class="p">,</span> <span class="o">-</span><span class="n">n_days</span><span class="p">)</span><span class="p">,</span> <span class="n">n_days</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">city</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_bar</span><span class="p">(</span><span class="n">stat</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">identity&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Number of days spent in city&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">city&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">n days&#34;</span><span class="p">)</span>
+
+<span class="nf">grid.arrange</span><span class="p">(</span><span class="n">cities_rank_p</span><span class="p">,</span> <span class="n">city_time_p</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/cities_rank-1.png"><img  src="/images/2020-01-16-location-history/cities_rank-1.png"
+        alt/></a><!-- --></p>
+<h2 id="total-distance">Total distance</h2>
+<p>In order to retrieve the total distance I’ve covered over the years, it
+is needed to compute the distance between each location and the previous
+one. Judging from the plot below <em>2018</em>  needs some further inspection, as its
+values look suspicious and might be originated by some outliers (beyond the scope of this notebook).</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Lag coordinates to calculate point distance</span>
+<span class="n">dist_df</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span>
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">latitudeGPS_lag</span> <span class="o">=</span> <span class="nf">lag</span><span class="p">(</span><span class="n">latitudeGPS</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span><span class="p">,</span>
+         <span class="n">longitudeGPS_lag</span> <span class="o">=</span> <span class="nf">lag</span><span class="p">(</span><span class="n">longitudeGPS</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span><span class="p">)</span>
+
+<span class="c1"># Calculate distance (in meterss) between every point</span>
+<span class="n">dist_df</span><span class="o">$</span><span class="n">dist_to_prev</span> <span class="o">&lt;-</span> <span class="nf">pointDistance</span><span class="p">(</span>
+  <span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">dist_df</span><span class="o">$</span><span class="n">latitudeGPS_lag</span><span class="p">,</span> <span class="n">dist_df</span><span class="o">$</span><span class="n">longitudeGPS_lag</span><span class="p">)</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">)</span><span class="p">,</span>
+  <span class="nf">matrix</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="n">dist_df</span><span class="o">$</span><span class="n">latitudeGPS</span><span class="p">,</span> <span class="n">dist_df</span><span class="o">$</span><span class="n">longitudeGPS</span><span class="p">)</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">)</span><span class="p">,</span>
+  <span class="n">lonlat</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">dist_month</span> <span class="o">&lt;-</span> <span class="n">dist_df</span> <span class="o">%&gt;%</span>
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">month</span> <span class="o">=</span> <span class="nf">format</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%m&#34;</span><span class="p">)</span><span class="p">,</span>
+           <span class="n">year</span> <span class="o">=</span> <span class="nf">format</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">filter</span><span class="p">(</span><span class="o">!</span><span class="n">year</span> <span class="o">%in%</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;</span><span class="s">2020&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">2013&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">total_dist</span> <span class="o">=</span> <span class="nf">sum</span><span class="p">(</span><span class="n">dist_to_prev</span><span class="o">*</span><span class="m">0.001</span><span class="p">,</span> <span class="n">na.rm</span> <span class="o">=</span> <span class="kc">TRUE</span><span class="p">)</span><span class="p">)</span>
+
+<span class="nf">ggplot</span><span class="p">(</span><span class="n">dist_month</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">total_dist</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_bar</span><span class="p">(</span><span class="n">stat</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">identity&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">facet_grid</span><span class="p">(</span><span class="n">year</span> <span class="o">~</span> <span class="n">.,</span> <span class="n">scales</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">free&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Total distance covered&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">month&#34;</span><span class="p">,</span>
+       <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">tot. distance (meters)&#34;</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/dist_year-1.png"><img  src="/images/2020-01-16-location-history/dist_year-1.png"
+        alt/></a><!-- --></p>
+<h2 id="activities">Activities</h2>
+<p>It seems that while collecting data, Google also infers the type of
+activity we’re performing. This predictions can be found in the nested
+dataframes located in the <code>activity</code> column. I will only look at
+<strong>2018</strong> as unnesting large amounts of nested data can take quite a
+while. Surprisingly enough, it looks like I’ve spent most of my time
+<em>activity</em>, without knowing how this predictions are produced it’s hard
+to tell whether or not it is accurate.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">activities</span> <span class="o">&lt;-</span> <span class="nf">bind_rows</span><span class="p">(</span><span class="n">data</span><span class="o">$</span><span class="n">activity</span><span class="p">)</span>  <span class="c1"># Get df of activities</span>
+
+<span class="c1"># Unnest activity dataframes</span>
+<span class="n">activities</span> <span class="o">&lt;-</span> <span class="n">activities</span> <span class="o">%&gt;%</span>
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">timestampMs</span> <span class="o">=</span> <span class="nf">norm_ts</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">filter</span><span class="p">(</span><span class="nf">format</span><span class="p">(</span><span class="n">timestampMs</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y&#34;</span><span class="p">)</span> <span class="o">%in%</span> <span class="m">2018</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="n">tidyr</span><span class="o">::</span><span class="nf">unnest</span><span class="p">(</span><span class="n">.,</span> <span class="n">activity</span><span class="p">)</span>    
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">activities_rank</span> <span class="o">&lt;-</span> <span class="n">activities_df</span> <span class="o">%&gt;%</span> 
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">count</span><span class="p">(</span><span class="p">)</span>
+
+<span class="nf">ggplot</span><span class="p">(</span><span class="n">activities_rank</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="nf">reorder</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="o">-</span><span class="n">n</span><span class="p">)</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">type</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_bar</span><span class="p">(</span><span class="n">stat</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">identity&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme_light</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Main activities in 2018&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">&#34;</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/unnamed-chunk-8-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-8-1.png"
+        alt/></a><!-- --></p>
+<h2 id="extras---animations">Extras - Animations</h2>
+<p>The data spans across several years, with London being the city where
+I’ve generated data for the longest period of time. Through
+<a href="https://github.com/thomasp85/gganimate"target="_blank"><code>gganimate</code></a> we can visualise
+the evolution of the recorded locations on a map.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">gganimate</span><span class="p">)</span>
+
+<span class="c1"># Get London data</span>
+<span class="n">ldn_2018</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+  <span class="nf">filter</span><span class="p">(</span><span class="nf">format</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y&#34;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="m">2016</span><span class="p">,</span>
+         <span class="nf">format</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%Y&#34;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="m">2019</span><span class="p">,</span>
+         <span class="n">nearest_airport</span> <span class="o">==</span> <span class="s">&#34;</span><span class="s">LONDON&#34;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">mutate</span><span class="p">(</span><span class="n">month</span> <span class="o">=</span> <span class="nf">as.integer</span><span class="p">(</span><span class="nf">format</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">%m&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+
+<span class="n">ldn_anim</span> <span class="o">&lt;-</span> <span class="nf">ggmap</span><span class="p">(</span><span class="n">maps</span><span class="o">$</span><span class="n">London</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_point</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">ldn_2018</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">longitudeGPS</span><span class="p">,</span> <span class="n">latitudeGPS</span><span class="p">)</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="m">0.01</span><span class="p">,</span> <span class="n">colour</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">tomato&#34;</span><span class="p">,</span>
+       <span class="n">size</span> <span class="o">=</span> <span class="m">0.6</span><span class="p">)</span> <span class="o">+</span> 
+  <span class="nf">theme</span><span class="p">(</span><span class="n">plot.margin</span> <span class="o">=</span> <span class="nf">unit</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">,</span> <span class="m">0.1</span><span class="p">)</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">cm&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="c1"># This is the gganimate-related bit</span>
+  <span class="nf">transition_time</span><span class="p">(</span><span class="n">month</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">enter_fade</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">ease_aes</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Locations in London&#34;</span><span class="p">)</span>
+
+<span class="nf">animate</span><span class="p">(</span><span class="n">ldn_anim</span><span class="p">,</span> <span class="n">renderer</span> <span class="o">=</span> <span class="nf">gifski_renderer</span><span class="p">(</span><span class="s">&#34;</span><span class="s">ldn_2018.gif&#34;</span><span class="p">)</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-01-16-location-history/ldn_2018.gif"><img  src="/images/2020-01-16-location-history/ldn_2018.gif"
+        alt/></a><!-- --></p>
+</article><section class="article labels"><a class="article category" href=/categories/r/><span class="hashtag">#</span>R</a><a class="article tag" href=/tags/eda/><span class="hashtag">#</span>eda</a></section><section class="article navigation"><p><a class="link" href="/post/experiments/"><span class="li"></span>Experiments</a class="link">
+    </p></section><section class="article discussion"><div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "anddt-com" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a></section></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
+<p style="flex-shrink: 0;">2020 Andrea dodet</p>
+<p><a
+    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
+    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
+    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
+</div>
+</section>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+</div>
+</body>
+
+</html>

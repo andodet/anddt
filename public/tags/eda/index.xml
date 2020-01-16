@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>eda on Andrea Dodet</title>
+    <link>/tags/eda/</link>
+    <description>Recent content in eda on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <copyright>2020 Andrea dodet</copyright>
+    <lastBuildDate>Wed, 08 Jan 2020 20:36:36 +0100</lastBuildDate>
+    
+        <atom:link href="/tags/eda/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Digging into Google location history</title>
+      <link>/post/location-history/</link>
+      <pubDate>Wed, 08 Jan 2020 20:36:36 +0100</pubDate>
+      
+      <guid>/post/location-history/</guid>
+      <description>Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good).</description>
+    </item>
+    
+  </channel>
+</rss>
