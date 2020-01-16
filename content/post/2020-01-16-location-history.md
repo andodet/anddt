@@ -1,7 +1,7 @@
 ---
 title: "Digging into Google location history"
 slug: location-history
-date: 2020-01-16T20:36:36+01:00
+date: 2020-01-16
 draft: false
 comments: true
 categories:

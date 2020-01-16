@@ -5,7 +5,7 @@
     <div class="base-body"><section id="header" class="site header max-body-width">
     <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
         <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
-    <h1 class="article title">Digging into Google location history</h1><p class="article date">Wednesday, January 8, 2020</p></section><article class="article markdown-body"><ul>
+    <h1 class="article title">Digging into Google location history</h1><p class="article date">Thursday, January 16, 2020</p></section><article class="article markdown-body"><ul>
 <li><a href="#setup">Setup</a></li>
 <li><a href="#data-preprocess">Data preprocess</a></li>
 <li><a href="#how-big-is-the-dataset">How big is the dataset?</a></li>
@@ -356,11 +356,13 @@ located</li>
 <h2 id="where-was-the-data-collected-and-for-how-long">Where was the data collected and for how long?</h2>
 <p>It is now possible to plot the number of datapoints collected and the
 number of days spent in each city.</p>
-<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="n">cities_rank</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Data points by city</span>
+<span class="n">cities_rank</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
   <span class="nf">group_by</span><span class="p">(</span><span class="n">city</span> <span class="o">=</span> <span class="nf">as.factor</span><span class="p">(</span><span class="n">nearest_airport</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
   <span class="nf">count</span><span class="p">(</span><span class="p">)</span> <span class="o">%&gt;%</span> 
   <span class="nf">arrange</span><span class="p">(</span><span class="nf">desc</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="p">)</span>
 
+<span class="c1"># Distinct days by city</span>
 <span class="n">city_time</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span> 
   <span class="nf">group_by</span><span class="p">(</span><span class="n">city</span> <span class="o">=</span> <span class="n">nearest_airport</span><span class="p">)</span> <span class="o">%&gt;%</span>
   <span class="nf">summarise</span><span class="p">(</span><span class="n">n_days</span> <span class="o">=</span> <span class="nf">n_distinct</span><span class="p">(</span><span class="n">date</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
