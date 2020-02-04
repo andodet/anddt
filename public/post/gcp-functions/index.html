@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Hosting simple scripts for cheap on GCP&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
+    <div class="base-body"><section id="header" class="site header max-body-width">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
+        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
+    <h1 class="article title">Hosting simple scripts for cheap on GCP</h1><p class="article date">Tuesday, February 4, 2020</p></section><article class="article markdown-body"><h2 id="on-giving-and-old-macbook-air-some-rest">On giving and old Macbook Air some rest</h2>
+<p>In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted
+on <a href="https://stackoverflow.com"target="_blank">stackoverflow</a> on a given day. To do this, I've written
+a small <a href="https://github.com/andodet/stack-jobs-parser"target="_blank">Python utility</a> that parses their
+XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.</p>
+<p>I initially hosted this script as a <code>crontab</code> job on my old Macbook Air that sits collecting dust on
+a bookshelf. Everything went smooth until I forgot to attach the power cord for a few days
+(consequently missing data collections), it wasn't the end of the world and no human life
+depends on it but it was probably the right time to study how to host simple scripts on a
+cloud provider for cheap (alas for free).</p>
+<h2 id="alternatives">Alternatives</h2>
+<p>I chose GCP for no specific reason beyond the fact that I already had an account and some
+euros worth of free credits. I am aware that the same end results can be achieved using
+Lambda Functions or spinning up a VM on AWS.<br>
+The requirements were quite basic:</p>
+<ul>
+<li>Something cheap (the script will run 4 times a day)</li>
+<li>More efficient than a VM (without using k8s auto-scaling I'd end up paying for idle time).
+With Cloud Functions I'll be billed only for the time my function has actually run for</li>
+<li>Easy and quick to deploy</li>
+</ul>
+<p>I ended up choosing GCP functions as for my usage levels I'd stay within the free plan
+usage limits (at the time of writing):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Free tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Invocations</td>
+<td>2,000,000</td>
+</tr>
+<tr>
+<td>GB/second</td>
+<td>400,000</td>
+</tr>
+<tr>
+<td>GHz/second</td>
+<td>200,000</td>
+</tr>
+<tr>
+<td>Networking</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<h2 id="preparing-and-hosting-the-repo">Preparing and hosting the repo</h2>
+<p>In order to successfully host my function to the cloud, my original script needed couple adjustments.
+First, as the function will be invoked by a <code>GET</code> request, I had to add <code>request</code> as an argument of
+my main function in order to make it callable.</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="p">:</span>
+    <span class="c1"># Do stuff</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span>  <span class="sa"></span><span class="s2">&#34;</span><span class="s2">__main__</span><span class="s2">&#34;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="p">)</span>
+</code></pre></div><p>Secondly, <a href="https://gspread.readthedocs.io/en/latest/"target="_blank"><code>gspread</code></a> (Python module to interact with
+Google Sheets) requires a json file with API auth keys for authentication. I have put that file in a storage bucket and
+<a href="https://github.com/andodet/stack-jobs-parser/blob/50c010ed5b124a66c3ad90715266b668a5947d4e/so_parser/main.py#L15"target="_blank">retrieve</a>
+the file when the function is invoked.</p>
+<p>At this point there are mainly 3 ways to host the script code:</p>
+<ol>
+<li>Deploy directly from a local folder.</li>
+<li>Compress the script folder in a .zip archive and pass it in as an argument during deployment.</li>
+<li>Mirror my github repo on a <a href="https://cloud.google.com/source-repositories"target="_blank">GCP Source Repository</a>.
+This will play nicely with Cloudbuild if and when I'll decide to implement some basic CI that would
+trigger a refresh of the function upon new commits.</li>
+</ol>
+<p>I decided to go with <strong>3</strong> as the process is straightforward enough.</p>
+<h2 id="deployment">Deployment</h2>
+<p>Functions can be easily deployed via <code>gcloud</code> command line utility. Depending on the use-case,
+a number of arguments can be set. In this specific case, it is pretty important to set:</p>
+<ul>
+<li><code>--set-env-vars</code>: set environment variables needed by the script to run properly
+<ul>
+<li><code>JOB_SHEET_ID</code>: id of the google sheet that will store the parsed job listings.</li>
+<li><code>SHEET_NAME</code>: worksheet name of the spreadsheet mentioned above</li>
+<li><code>GOOGLE_AUTH_KEY</code>: name of the file storing Google API keys. When run locally, this pointed
+to a file in the script folder. In cloud function this variable will point to the right file in the
+storage bucket.</li>
+</ul>
+</li>
+<li><code>--no-allow-unauthenticated</code>: this argument prevents the function from being invoked from the outside world.
+It is particularly critical as it will ensure I won't incur in any billing generated by
+fraudulent activity. This has been the aspect that I've struggled to understand the most as I kept
+finding different authentication approaches. After asking a <a href="https://stackoverflow.com/a/59838643/9046275"target="_blank">question</a> on stackoverflow, I have decided
+to stick with the approach described in this post as it relies on gcp service accounts and
+doesn't require to implement auth flows in the function.</li>
+<li><code>--timeout</code>: it is safe to set it a tad longer than the average function run time as execution
+will be killed if it exceeds timeout (default is 30s). It is worth pointing out that Cloud Functions have an
+<strong>execution time limit of 9 minutes</strong>.</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">gcloud functions deploy so-parse <span class="se">\
+</span><span class="se"></span>    --memory 128MB <span class="se">\
+</span><span class="se"></span>    --runtime python37 <span class="se">\
+</span><span class="se"></span>    --entry-point main <span class="se">\
+</span><span class="se"></span>    --source https://source.developers.google.com/projects/your-project/repos/repo-name/path/to/function <span class="se">\
+</span><span class="se"></span>    --timeout <span class="m">300</span> <span class="se">\
+</span><span class="se"></span>    --set-env-vars <span class="nv">JOB_SHEET_ID</span><span class="o">=</span><span class="s2">&#34;your-ghseet-id&#34;</span> <span class="se">\
+</span><span class="se"></span>    --set-env-vars <span class="nv">SHEET_NAME</span><span class="o">=</span><span class="s2">&#34;worksheet-name&#34;</span> <span class="se">\
+</span><span class="se"></span>    --set-env-vars <span class="nv">GOOGLE_AUTH_KEY</span><span class="o">=</span><span class="s2">&#34;json-file-with-google-auth-keys.json&#34;</span> <span class="se">\
+</span><span class="se"></span>    --trigger-http <span class="se">\
+</span><span class="se"></span>    --no-allow-unauthenticated
+</code></pre></div><p>In order to automatically run the function at set intervals, it is possible to rely on <a href="https://cloud.google.com/scheduler/"target="_blank">Cloud Scheduler</a>.
+The main logic is to set up a cron job that will fire a <code>GET</code> request to the function's trigger url
+at a given interval.<br>
+Before setting the cron job up we need to create a service account and make sure it has the right
+permissions to invoke Cloud Functions.</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">gcloud iam service-accounts create cloud-scheduler
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">gcloud functions add-iam-policy-binding <span class="se">\
+</span><span class="se"></span>    --member<span class="o">=</span>serviceAccount:cloud-scheduler@your-project.iam.gserviceaccount.com <span class="se">\
+</span><span class="se"></span>    --role<span class="o">=</span>roles/cloudfunctions.invoker so-parse
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">gcloud scheduler <span class="nb">jobs</span> create http stack-scrape <span class="se">\
+</span><span class="se"></span>    --schedule<span class="o">=</span><span class="s2">&#34;*/3 * * * *&#34;</span> <span class="se">\
+</span><span class="se"></span>    --uri<span class="o">=</span>https://your-func-trigger-url <span class="se">\
+</span><span class="se"></span>    --oidc-service-account-email<span class="o">=</span>cloud-scheduler@your-project.iam.gserviceaccount.com 
+</code></pre></div><p>To confirm that everything went according to plan I quickly peeked a the logs after waiting for
+a few minutes (to be sure the function actually had the time to run at least once).</p>
+<img align="center" src="/images/2020-02-04-gcloud-funcs/func-log.png">
+</article><section class="article labels"><a class="article category" href=/categories/python/>Python</a><a class="article tag" href=/tags/gcp/>gcp</a></section><section class="article navigation"><p><a class="link" href="/post/location-history/"><span class="li"></span>Digging into Google location history</a class="link">
+    </p></section><section class="article discussion"><div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "anddt-com" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a></section></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
+<p style="flex-shrink: 0;">2020 Andrea dodet</p>
+<p><a
+    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
+    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
+    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
+</div>
+</section>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+</div>
+</body>
+
+</html>

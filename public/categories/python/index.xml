@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Python on Andrea Dodet</title>
+    <link>/categories/python/</link>
+    <description>Recent content in Python on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <copyright>2020 Andrea dodet</copyright>
+    <lastBuildDate>Tue, 04 Feb 2020 00:00:00 +0000</lastBuildDate>
+    
+        <atom:link href="/categories/python/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Hosting simple scripts for cheap on GCP</title>
+      <link>/post/gcp-functions/</link>
+      <pubDate>Tue, 04 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/post/gcp-functions/</guid>
+      <description>On giving and old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&#39;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf.</description>
+    </item>
+    
+  </channel>
+</rss>

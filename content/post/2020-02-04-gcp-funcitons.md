@@ -2,7 +2,7 @@
 title: "Hosting simple scripts for cheap on GCP"
 slug: gcp-functions
 date: 2020-02-04
-draft: true
+draft: false
 comments: true
 categories:
     - Python

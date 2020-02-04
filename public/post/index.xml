@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2020 Andrea dodet</copyright>
-    <lastBuildDate>Thu, 16 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 04 Feb 2020 00:00:00 +0000</lastBuildDate>
     
         <atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Hosting simple scripts for cheap on GCP</title>
+      <link>/post/gcp-functions/</link>
+      <pubDate>Tue, 04 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/post/gcp-functions/</guid>
+      <description>On giving and old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&#39;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf.</description>
+    </item>
     
     <item>
       <title>Digging into Google location history</title>
