@@ -10,7 +10,7 @@ tags:
     - gcp
 ---
 
-## On giving and old Macbook Air some rest
+## On giving an old Macbook Air some rest
 
 In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted 
 on [stackoverflow](https://stackoverflow.com) on a given day. To do this, I've written 
