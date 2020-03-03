@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>R on Andrea Dodet</title>
-    <link>/categories/r/</link>
-    <description>Recent content in R on Andrea Dodet</description>
+    <title>shiny on Andrea Dodet</title>
+    <link>/tags/shiny/</link>
+    <description>Recent content in shiny on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2020 Andrea dodet</copyright>
     <lastBuildDate>Tue, 03 Mar 2020 00:00:00 +0000</lastBuildDate>
     
-        <atom:link href="/categories/r/index.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="/tags/shiny/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -19,15 +19,6 @@
       
       <guid>/post/shiny-plot-caching/</guid>
       <description>Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
-    </item>
-    
-    <item>
-      <title>Digging into Google location history</title>
-      <link>/post/location-history/</link>
-      <pubDate>Thu, 16 Jan 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/post/location-history/</guid>
-      <description>Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good).</description>
     </item>
     
   </channel>

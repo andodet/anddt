@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Caching plots in Shiny&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
+    <div class="base-body"><section id="header" class="site header max-body-width">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
+        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
+    <h1 class="article title">Caching plots in Shiny</h1><p class="article date">Tuesday, March 3, 2020</p></section><article class="article markdown-body"><ul>
+<li><a href="#bringing-shiny-into-production">Bringing Shiny into production</a></li>
+<li><a href="#caching-plots">Caching plots</a></li>
+<li><a href="#measuring-speed-benefits">Measuring speed benefits</a></li>
+<li><a href="#closing-remarks">Closing remarks</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+<h2 id="bringing-shiny-into-production">Bringing Shiny into production</h2>
+<p>In the past few days I spent some spare time going through a bunch of
+old <a href="https://rstudio.com/conference/"target="_blank">rstudio::conf</a> talks about scaling
+and deploying Shiny apps into production. Dashboard latency times, load
+times and general dashboard reactivity come regularly as the main
+challenges to overcome in order to provide a good user experience and
+ensure good adoption. As a general rule of thumb, the following
+strategies seemed to come up regularly in the talks:</p>
+<ol>
+<li>Move away long running computations and ETL processes away from the
+user. Most of the time, it is not necessary to pull and crunch data
+from a database every new session. This can be easily avoided by
+setting up a CRON job that pulls data and aggregates it overnight.
+Your mileage will obviously vary depending on how frequently you’ll
+need your data updated.</li>
+<li>On the UI side, use dynamic components wisely. One could start with
+a fairly simple UI set and add complexity at a later stage via
+<code>insertUI</code>/<code>removeUI</code> calls.</li>
+<li>When dealing with large data frames, <code>data.table</code> might be preferred
+to <code>dplyr</code> for its speed efficiencies.</li>
+<li>If your dashboard spends most of the time building plots, caching
+them will cut wait times with some caveats that will be explored
+later.</li>
+<li>Finding bottle necks can be cumbersome in large and complex
+dashboards. Profiling the dashboard with
+<a href="https://rstudio.github.io/profvis/"target="_blank"><code>profvis</code></a> should clarify where
+the dashboard is spending most of its computing time.</li>
+</ol>
+<p>The following post aims to be a straightforward walk through on how to
+implement a simple cache (using <a href="https://redis.io/"target="_blank">Redis</a>) and
+analyzing the consequent speed improvements.</p>
+<h2 id="caching-plots">Caching plots</h2>
+<p>I deeply recommend
+<a href="https://shiny.rstudio.com/articles/plot-caching.html"target="_blank">this</a> post from
+Winston Chang for exhaustive documentation on the several nuances of
+caching plots in Shiny. For clarity’s sake, the following <a href="https://gist.github.com/andodet/fe390ae45127a80e3e526e63fc3f11bf"target="_blank">example
+app</a>
+will be used as a test throughout this post:</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">shiny</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">R6</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">redux</span><span class="p">)</span>
+
+<span class="n">ui</span> <span class="o">&lt;-</span> <span class="nf">fluidPage</span><span class="p">(</span><span class="nf">titlePanel</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Plot Caching Test&#34;</span><span class="p">)</span><span class="p">,</span>
+                
+                <span class="nf">sidebarLayout</span><span class="p">(</span><span class="nf">sidebarPanel</span><span class="p">(</span>
+                  <span class="nf">selectInput</span><span class="p">(</span><span class="s">&#34;</span><span class="s">number&#34;</span><span class="p">,</span> <span class="n">choices</span> <span class="o">=</span> <span class="nf">seq</span><span class="p">(</span><span class="m">80000</span><span class="p">,</span> <span class="m">100000</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="m">10000</span><span class="p">)</span><span class="p">,</span>
+                              <span class="n">label</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Number of points&#34;</span><span class="p">,</span> <span class="n">selected</span> <span class="o">=</span> <span class="m">5000</span><span class="p">)</span>
+                <span class="p">)</span><span class="p">,</span>
+                <span class="nf">mainPanel</span><span class="p">(</span><span class="nf">plotOutput</span><span class="p">(</span><span class="s">&#34;</span><span class="s">point_plot&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+
+
+<span class="n">server</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">{</span>
+  
+  <span class="n">data</span> <span class="o">&lt;-</span> <span class="nf">reactive</span><span class="p">(</span><span class="p">{</span>
+    <span class="nf">data.frame</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span><span class="p">,</span>
+               <span class="n">y</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span><span class="p">)</span>
+  <span class="p">}</span><span class="p">)</span>
+  
+  <span class="n">output</span><span class="o">$</span><span class="n">point_plot</span> <span class="o">&lt;-</span> <span class="nf">renderCachedPlot</span><span class="p">(</span><span class="p">{</span>
+    <span class="nf">ggplot</span><span class="p">(</span><span class="nf">data</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+      <span class="nf">geom_point</span><span class="p">(</span><span class="n">alpha</span> <span class="o">=</span> <span class="m">0.8</span><span class="p">)</span> <span class="o">+</span>
+      <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Random scatterplot&#34;</span><span class="p">)</span>
+  <span class="p">}</span><span class="p">,</span>
+  <span class="n">cacheKeyExpr</span> <span class="o">=</span> <span class="p">{</span> <span class="nf">list</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span> <span class="p">}</span>
+  <span class="p">)</span>
+  
+  
+  <span class="c1"># Set up redis cache object</span>
+  <span class="n">RedisCache</span> <span class="o">&lt;-</span> <span class="nf">R6Class</span><span class="p">(</span>
+    <span class="s">&#34;</span><span class="s">RedisCache&#34;</span><span class="p">,</span>
+    <span class="n">public</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span>
+      <span class="n">initialize</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="kc">...</span><span class="p">,</span> <span class="n">namespace</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span> <span class="o">&lt;-</span> <span class="n">redux</span><span class="o">::</span><span class="nf">hiredis</span><span class="p">(</span><span class="n">host</span> <span class="o">=</span> <span class="s">&#39;</span><span class="s">127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="m">6379</span><span class="p">)</span>
+        
+        <span class="c1"># Configure 20mb cache</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;</span><span class="s">maxmemory&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">20mb&#34;</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;</span><span class="s">maxmemory-policy&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">allkeys-lru&#34;</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">namespace</span> <span class="o">&lt;-</span> <span class="n">namespace</span>
+      <span class="p">}</span><span class="p">,</span>
+      
+      <span class="n">get</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">s_value</span> <span class="o">&lt;-</span> <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">GET</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">s_value</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nf">return</span><span class="p">(</span><span class="nf">key_missing</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="nf">unserialize</span><span class="p">(</span><span class="n">s_value</span><span class="p">)</span>
+      <span class="p">}</span><span class="p">,</span>
+      
+      <span class="n">set</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">s_value</span> <span class="o">&lt;-</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">SET</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">s_value</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">)</span><span class="p">,</span>
+    <span class="n">private</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">r</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">,</span>
+                   <span class="n">namespace</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span>
+  <span class="p">)</span>
+  
+  <span class="nf">shinyOptions</span><span class="p">(</span><span class="n">cache</span> <span class="o">=</span> <span class="n">RedisCache</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">namespace</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">example_app&#34;</span><span class="p">)</span><span class="p">)</span>
+  
+<span class="p">}</span>
+
+<span class="nf">shinyApp</span><span class="p">(</span><span class="n">ui</span><span class="p">,</span> <span class="n">server</span><span class="p">)</span>
+</code></pre></div><p>From the code above, two main things should be noted:</p>
+<ul>
+<li>The declaration of a <code>RedisCache</code> object, pointing to the IP address
+of the Redis server (in this case a local Redis docker container).</li>
+<li><code>cacheKeyExpr</code> declares the UI element that when touched or changed
+will invalidate the cache, forcing the plot to be redrawn.</li>
+</ul>
+<p>Below a screenshot of the resulting example:</p>
+<p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-03-03-caching-shiny-plots/toy_app.png"><img  src="/images/2020-03-03-caching-shiny-plots/toy_app.png"
+        alt/></a></p>
+<p>In this example, a Redis server will be spun up through Docker:</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">docker run -d -p 6379:6379 --name cache redis
+</code></pre></div><p>It is possible to verify the server has come live correctly by checking
+<code>docker ps</code> output.</p>
+<h2 id="measuring-speed-benefits">Measuring speed benefits</h2>
+<p>Upon interaction with the dropdown menu, the application generates some
+data-points and draws a scatterplot, the number of points to be plotted
+is large enough to make plotting fairly time consuming. Caching plots is
+particularly useful when the same output is frequently requested by
+users (e.g weekly sessions, conversion rate by campaign, etc.). In order
+to simulate simultaneous multi-user activity,
+<a href="https://rstudio.github.io/shinyloadtest/"target="_blank"><code>shinyloadtest</code></a> will be
+used. Simulating activity load with <code>shinyloadtest</code> is a two-step
+process:</p>
+<ol>
+<li>
+<p>Record a typical user session (e.g interacting with dates,
+drop-downs, etc) with<br>
+<code>shinyloadtest::record_session(&quot;http://127.0.0.1:3184&quot;)</code><br>
+After closing the browser tab a <code>recording.log</code> file will be
+generated, encoding all the mock user activity just simulated.</p>
+</li>
+<li>
+<p>Now it is time to launch parallel user sessions with the user
+interactions just recorded. For example, something like <code>shinycannon recording.log http://app_url:port --workers 5 --loaded-duration-minutes 3 --output-dir test_run</code> will simulate 5
+users, interacting with the app for 3 minutes using the interactions
+recorded in <code>recording.log</code>.</p>
+</li>
+</ol>
+<p>In order to better understand the magnitude of speed benefits introduced
+by plot-caching, the following scenarios were simulated:</p>
+<ul>
+<li>25 concurrent users with cache <em>enabled</em></li>
+<li>50 concurrent users with cache <em>enabled</em></li>
+<li>100 concurrent users with cache <em>enabled</em></li>
+<li>200 concurrent users with cache <em>enabled</em></li>
+<li>5 concurrent users with cache <em>disabled</em></li>
+</ul>
+<p>After running all the above scenarios (making sure to flush the cache
+each run via <code>docker exec -it cahce redis-cli FLUSHALL</code>), a number of
+folder containing logs for each session will be created. <code>shinyloadtest</code>
+already has builtin functions to import, parse and compute relevant
+metrics from these log files. <em>Total session time</em> will be the main
+metric against which performances will be assessed.</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">shinyloadtest</span><span class="p">)</span>
+
+<span class="c1"># Import laodtest runs</span>
+<span class="n">cached_200</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">200_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_100</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">100_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_50</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">50_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_25</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">25_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">uncached_5</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">5_users_uncached/&#34;</span><span class="p">)</span>
+
+<span class="c1"># Merge dataframes</span>
+<span class="n">df</span> <span class="o">&lt;-</span> <span class="nf">rbind</span><span class="p">(</span><span class="n">cached_200</span><span class="p">,</span> <span class="n">cached_100</span><span class="p">,</span> <span class="n">cached_50</span><span class="p">,</span>
+            <span class="n">cached_25</span><span class="p">,</span> <span class="n">uncached_5</span><span class="p">)</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
+<span class="nf">glimpse</span><span class="p">(</span><span class="n">cached_100</span><span class="p">)</span>
+</code></pre></div><pre><code>## Observations: 11,886
+## Variables: 13
+## $ run               &lt;ord&gt; 100_users_cached, 100_users_cached, 100_users_cache…
+## $ session_id        &lt;int&gt; 0, 0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100, 200…
+## $ user_id           &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
+## $ iteration         &lt;int&gt; 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, …
+## $ input_line_number &lt;int&gt; 4, 5, 7, 8, 10, 12, 4, 5, 7, 8, 10, 12, 4, 5, 7, 8,…
+## $ event             &lt;chr&gt; &quot;REQ_HOME&quot;, &quot;WS_OPEN&quot;, &quot;WS_RECV_INIT&quot;, &quot;WS_RECV&quot;, &quot;…
+## $ start             &lt;dbl&gt; -15.003, -14.974, -14.921, -14.918, -8.782, -4.934,…
+## $ end               &lt;dbl&gt; -14.976, -14.944, -14.919, -12.637, -6.348, -1.827,…
+## $ time              &lt;dbl&gt; 0.027, 0.030, 0.002, 2.281, 2.434, 3.107, 0.220, 0.…
+## $ concurrency       &lt;dbl&gt; 0.0, 1.0, 1.0, 1.0, 41.5, 63.5, 92.5, 89.5, 93.0, 9…
+## $ maintenance       &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRU…
+## $ label             &lt;ord&gt; Event 1) Get: Homepage, Event 2) Start Session, Eve…
+## $ json              &lt;list&gt; [[&quot;REQ_HOME&quot;, 2020-03-01 18:42:58, 2020-03-01 18:4…
+</code></pre>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">scales</span><span class="p">)</span>
+
+<span class="c1"># Plot session times</span>
+<span class="n">df</span> <span class="o">%&gt;%</span>
+  <span class="nf">group_by</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">tot_time</span> <span class="o">=</span> <span class="nf">sum</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">tot_time</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">run</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">geom_boxplot</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_y_continuous</span><span class="p">(</span><span class="n">trans</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">log10&#34;</span><span class="p">,</span> 
+                     <span class="n">breaks</span> <span class="o">=</span> <span class="nf">trans_breaks</span><span class="p">(</span><span class="s">&#34;</span><span class="s">log10&#34;</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="m">10</span><span class="n">^x</span><span class="p">)</span><span class="p">,</span>
+                     <span class="n">labels</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="m">2</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">scale_x_discrete</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;</span><span class="s">25 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">50 Users\n Cached&#34;</span><span class="p">,</span>
+                              <span class="s">&#34;</span><span class="s">100 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">200 Users\n Cached&#34;</span><span class="p">,</span>
+                              <span class="s">&#34;</span><span class="s">5 Users\n No Cache&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">legend.position</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">none&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Session time (secs)&#34;</span><span class="p">,</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span>
+</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-03-03-caching-shiny-plots/sess_time-1.png"><img  src="/images/2020-03-03-caching-shiny-plots/sess_time-1.png"
+        alt/></a><!-- --></p>
+<p>As it can be easily noticed, the app supports up to 100 concurrent users
+without missing a beat (completely acceptable <em>total session times</em>). At
+200 concurrent users, performances start to look similar to the no-cache
+scenario. After inspecting computing times with <code>profvis</code>, it can be
+noted that the problem is actually the <code>rnorm</code> call trough which mock
+data generated.</p>
+<p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-03-03-caching-shiny-plots/profvis.png"><img  src="/images/2020-03-03-caching-shiny-plots/profvis.png"
+        alt/></a><br>
+Data generation could be made faster by caching the data frame (just
+like plots). I haven’t personally explored this as the
+<a href="https://github.com/jbryer/DataCache"target="_blank"><code>DataCache</code></a> package looks out of
+date and not actively maintained anymore. The good news is that the
+relationship between number of users and session time looks linear,
+hence throwing more hardware at the problem could be considered as a
+stopgap fix.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>This post has highlighted that there are undeniable benefits in caching
+plots when dealing with multiple concurrent users. The toy examples
+described above were tested locally, in a production environment it
+considered good practice to run load testing from a different server as
+the resources needed to generate fake traffic might influence app
+performances.</p>
+<p>In order to dig deeper on the test runs, <code>shinyloadtest</code> offers an
+extensive html report. The report can be generated after importing and
+crunching all the test run files:</p>
+<div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">shinyloadtest</span><span class="p">)</span>
+
+<span class="n">df</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span>
+  <span class="n">`5_uncached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">5_users_uncached/&#34;</span><span class="p">,</span>
+  <span class="n">`25_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">25_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`50_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">50_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`100_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">100_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`200_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">200_users_cached/&#34;</span>
+<span class="p">)</span>
+
+<span class="c1"># Make report</span>
+<span class="nf">shinyloadtest_report</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</code></pre></div><h2 id="references">References</h2>
+<ul>
+<li><a href=""><code>shinyloadtest</code></a>: load testing suite for Shiny applications</li>
+<li><a href=""><code>profvis</code></a>: profiler for R applications</li>
+<li><a href="https://gist.github.com/andodet/fe390ae45127a80e3e526e63fc3f11bf"target="_blank">toy example
+apps</a>
+used in this post</li>
+<li><a href="https://cran.r-project.org/web/packages/R6/index.html"target="_blank"><code>R6</code></a>:
+interface with R6 classes</li>
+<li><a href="https://cran.r-project.org/web/packages/redux/index.html"target="_blank"><code>redux</code></a>:
+interface package with Redis server</li>
+</ul>
+</article><section class="article labels"><a class="article category" href=/categories/r/>R</a><a class="article tag" href=/tags/shiny/>shiny</a></section><section class="article navigation"><p><a class="link" href="/post/gcp-functions/"><span class="li"></span>Hosting simple scripts for cheap on GCP</a class="link">
+    </p></section><section class="article discussion"><div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "anddt-com" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a></section></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
+<p style="flex-shrink: 0;">2020 Andrea dodet</p>
+<p><a
+    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
+    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
+    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
+</div>
+</section>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+</div>
+</body>
+
+</html>
