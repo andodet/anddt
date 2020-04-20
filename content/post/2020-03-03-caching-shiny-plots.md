@@ -184,7 +184,7 @@ by plot-caching, the following scenarios were simulated:
   - 5 concurrent users with cache *disabled*
 
 After running all the above scenarios (making sure to flush the cache
-each run via `docker exec -it cahce redis-cli FLUSHALL`), a number of
+each run via `docker exec -it cachce redis-cli FLUSHALL`), a number of
 folder containing logs for each session will be created. `shinyloadtest`
 already has builtin functions to import, parse and compute relevant
 metrics from these log files. *Total session time* will be the main
