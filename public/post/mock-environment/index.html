@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark"><title>Setting up a data-playground with docker-compose and Faker&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
+    <div class="base-body"><section id="header" class="site header max-body-width">
+    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
+        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
+    <h1 class="article title">Setting up a data-playground with docker-compose and Faker</h1><p class="article date">Wednesday, July 1, 2020</p></section><article class="article markdown-body"><p>In the past few days I played around with <a href="https://airflow.apache.org/"target="_blank">Airflow</a> to
+get familiar with its DAG syntax. Instead of scrambling around to find the right dataset
+to be imported in a MySQL instance I've decided to set-up a development environment
+from scratch that allowed me to quickly change the structure and type of data as I pleased.
+I've found this approach quite handy for three reasons:</p>
+<ol>
+<li>No time wasted on finding the right dataset in the interwebs.</li>
+<li>Very easy to extend and adapt to any scenario.</li>
+<li>Completely free: running locally, there's no need to provision and
+manage a small database instance.</li>
+</ol>
+<p>Beyond being a very easy way to set up a data playground, the following approach can also
+be adapted in scenarios where sensitive data is involved and using a replica of
+the actual db is not an option.<br>
+You can find the repo on <a href="https://github.com/andodet/mock-dev-env"target="_blank">github</a> to follow along.</p>
+<h2 id="overview">Overview</h2>
+<p>The structure of the tool is fairly straightforward: any sub folder inside <code>local-dev/</code>
+contains a Dockerfile that will spawn a database (a MySQL instance in this case) and
+populate each table through dedicated Python scripts.</p>
+<pre><code>.
+├── docker-compose.cli.yaml
+├── docker-compose.yaml
+├── local-dev
+│   ├── mysql-seeding
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   ├── seed_mysql.sh
+│   │   ├── seed_transactions.py
+│   │   ├── seed_users.py
+│   │   └── utils.py
+│   └── tests
+│       ├── Dockerfile
+│       ├── entrypoint.sh
+│       ├── requirements.txt
+│       └── tests.py
+└── README.md
+</code></pre><p>This process relies on a very simple <code>docker-compose</code> file to orchestrate the setup
+process, with the only restriction of waiting for the db to be up before seeding the mock
+entries. In order to wait for the db it will be enough to specify <code>depends_on</code> on the
+seeding service and <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py#L37"target="_blank">wait</a>
+for the db connection to be ready in the seeding scripts.</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mariadb<span class="p">:</span><span class="m">10.5</span><span class="w"> 
+</span><span class="w">    </span>container_name<span class="p">:</span><span class="w"> </span>mysql_db<span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
+</span><span class="w">    </span>expose<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306&#34;</span><span class="w">
+</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
+</span><span class="w">      </span>MYSQL_ROOT_PASSWORD<span class="p">:</span><span class="w"> </span><span class="s2">&#34;root&#34;</span><span class="w">
+</span><span class="w">      </span>MYSQL_DATABASE<span class="p">:</span><span class="w"> </span><span class="s2">&#34;database&#34;</span><span class="w">
+</span><span class="w">
+</span><span class="w">  </span>mysql_seeding<span class="p">:</span><span class="w">
+</span><span class="w">    </span>container_name<span class="p">:</span><span class="w"> </span>mysql_seeding<span class="w">
+</span><span class="w">    </span>build<span class="p">:</span><span class="w"> </span>./local-dev/mysql-seeding<span class="w">
+</span><span class="w">    </span>depends_on<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>mysql<span class="w">  
+</span></code></pre></div><p>The repo offers a <code>docker-compose.cli.yaml</code> file with an additional test container that will
+take care of checking that all the tables have been set up properly. We can check
+everything works locally by pointing <code>docker-compose</code> to the alternate file with
+<code>docker-compose -f docker-compose.cli.yaml up --build</code>.</p>
+<h2 id="database-setup--faker">Database setup &amp; Faker</h2>
+<p>For this example, I have set up a pretty easy setup, relying on a database containing
+a <em>users</em> and a <em>transactions</em> table structured as shown below.</p>
+<p><strong>users table</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>name</th>
+<th>email</th>
+<th>state</th>
+<th>birthday</th>
+<th>notes</th>
+<th>is_adult</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Benjamin Rodriguez</td>
+<td><a href="mailto:ywong@yahoo.com">ywong@yahoo.com</a></td>
+<td>IT</td>
+<td>1985-03-26 22:37:54</td>
+<td>You sit clear team family trial.</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tracy Morales</td>
+<td><a href="mailto:douglas92@yahoo.com">douglas92@yahoo.com</a></td>
+<td>IT</td>
+<td>1997-03-04 13:05:10</td>
+<td>News television real development.</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Julie Thomas MD</td>
+<td><a href="mailto:fgarza@hotmail.com">fgarza@hotmail.com</a></td>
+<td>EN</td>
+<td>1987-01-06 22:46:02</td>
+<td>Then end note.</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Vernon Wilson</td>
+<td><a href="mailto:stephanie83@hotmail.com">stephanie83@hotmail.com</a></td>
+<td>EN</td>
+<td>1974-01-11 01:05:32</td>
+<td>Her me child prepare.</td>
+<td>1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Adam Duran</td>
+<td><a href="mailto:jameschristian@yahoo.com">jameschristian@yahoo.com</a></td>
+<td>IT</td>
+<td>1977-04-28 15:26:31</td>
+<td>Animal hundred become right citizen.</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>transactions table</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>order_id</th>
+<th>user_id</th>
+<th>ts</th>
+<th>amount</th>
+<th>currency_code</th>
+<th>item</th>
+<th>is_premium</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>4048</td>
+<td>315</td>
+<td>1993-09-06 01:53:12</td>
+<td>8580.4900</td>
+<td>MGA</td>
+<td>green apple</td>
+<td>1</td>
+</tr>
+<tr>
+<td>2</td>
+<td>5268</td>
+<td>40</td>
+<td>2019-11-27 15:10:26</td>
+<td>618.3500</td>
+<td>XCD</td>
+<td>yellow banana</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>7650</td>
+<td>249</td>
+<td>1994-02-27 01:47:14</td>
+<td>1489.7300</td>
+<td>HKD</td>
+<td>samrt fox</td>
+<td>1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>7460</td>
+<td>332</td>
+<td>2010-03-12 11:57:00</td>
+<td>1519.2600</td>
+<td>SEK</td>
+<td>cool watermelon</td>
+<td>1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>3170</td>
+<td>171</td>
+<td>1981-05-30 21:15:37</td>
+<td>4565.9800</td>
+<td>AFN</td>
+<td>strange pear</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>As mentioned above, <code>Faker</code> has been used to populate these tables. The library has a number
+of built-in data providers to replicate pretty much any entry (emails, addresses, zip codes, etc.).
+As an example <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py"target="_blank">seed_transactions.py</a>
+will create 2.000 transactions for the same user ids created by <code>seed_users.py</code>.</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">insert_transactions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="p">:</span>
+    <span class="n">uids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_users</span><span class="p">(</span><span class="p">)</span>
+    <span class="n">transactions</span> <span class="o">=</span> <span class="p">[</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span><span class="p">:</span>
+        <span class="n">transaction</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">order_id</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pyint</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">9999</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">user_id</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">uids</span><span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">ts</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">date_time</span><span class="p">(</span><span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">amount</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pydecimal</span><span class="p">(</span>
+                <span class="n">left_digits</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">right_digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">currency_code</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">currency_code</span><span class="p">(</span><span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">constants</span><span class="p">[</span><span class="sa"></span><span class="s1">&#39;</span><span class="s1">products</span><span class="s1">&#39;</span><span class="p">]</span><span class="p">)</span><span class="p">,</span>
+            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">is_premium</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">boolean</span><span class="p">(</span><span class="n">chance_of_getting_true</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">transactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Transactions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="n">transactions</span><span class="p">)</span>
+</code></pre></div><h2 id="testing-everything-works-fine">Testing everything works fine</h2>
+<p>In order to test that everything works flawlessly, a second docker-compose file is included
+in the repo. This file has the same content of the original one except for spawning an
+extra container that will run a python script (based on <code>pytest</code>) to check that the tables have
+been created correctly. Pytest <a href="https://docs.pytest.org/en/stable/fixture.html"target="_blank">fixtures</a>
+can be used to set up a db connection before launching the actual tests:</p>
+<div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="nd">@pytest.fixture</span>
+<span class="k">def</span> <span class="nf">db_conn</span><span class="p">(</span><span class="p">)</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">create_engine</span><span class="p">,</span>
+        <span class="n">engine</span>
+    <span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy.ext.automap</span> <span class="kn">import</span> <span class="n">automap_base</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">InterfaceError</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">drivername</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">mysql+mysqlconnector</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">username</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">root</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">password</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">root</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">host</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">mysql</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">port</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">3306</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">database</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">database</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">Base</span> <span class="o">=</span> <span class="n">automap_base</span><span class="p">(</span><span class="p">)</span> 
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="o">*</span><span class="o">*</span><span class="n">config</span><span class="p">)</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">InterfaceError</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">Something went wrong while connecting to MySQL db</span><span class="s2">&#34;</span><span class="p">)</span>
+
+    <span class="n">Base</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">reflect</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">yield</span>  <span class="n">engine</span>
+    <span class="k">print</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">Disposing engine</span><span class="s2">&#34;</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">(</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">test_user_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">)</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">users</span><span class="s2">&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span>
+
+<span class="k">def</span> <span class="nf">test_tx_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">)</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">transactions</span><span class="s2">&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span> 
+</code></pre></div><h2 id="setting-up-github-actions">Setting up Github Actions</h2>
+<p>In order to make sure that no change will break the environment, the above mentioned
+docker-compose file can be integrated as a CI step as a Github Action. In a nutshell,
+the action will take care of building the images, setting up the containers and running the
+<a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/tests/tests.py"target="_blank"><code>tests.py</code></a> file.
+The workflow is pretty basic and it will be triggered both both on new pull requests
+and every time a commit will be pushed to master.</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">name<span class="p">:</span><span class="w"> </span>run-tests<span class="w">
+</span><span class="w">
+</span><span class="w"></span>on<span class="p">:</span><span class="w">
+</span><span class="w">  </span>push<span class="p">:</span><span class="w">
+</span><span class="w">    </span>branches<span class="p">:</span><span class="w"> </span>master<span class="w">
+</span><span class="w">  </span>pull_request<span class="p">:</span><span class="w">
+</span><span class="w">    </span>branches<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>master<span class="w">
+</span><span class="w">
+</span><span class="w"></span>jobs<span class="p">:</span><span class="w">
+</span><span class="w">  </span>build<span class="p">:</span><span class="w">
+</span><span class="w">    </span>runs-on<span class="p">:</span><span class="w"> </span>ubuntu-latest<span class="w">
+</span><span class="w">
+</span><span class="w">    </span>steps<span class="p">:</span><span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>uses<span class="p">:</span><span class="w"> </span>actions/checkout@v2<span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Build<span class="w"> </span>containers<span class="w">
+</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.cli.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Start<span class="w"> </span>db<span class="w">
+</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_db<span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Seed<span class="w"> </span>db<span class="w"> </span>mock<span class="w"> </span>entries<span class="w">
+</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding<span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Run<span class="w"> </span>tests<span class="w">
+</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding_test<span class="w"> </span>--attach<span class="w">
+</span></code></pre></div><p>The <code>--attach</code> flag will send the output of the test script to stdout, allowing to be
+inspected further.</p>
+<p><a target="_blank" rel="noopener noreferrer" 
+  href="/images/2020-07-01-mock-env/gh_action_tests.png"><img  src="/images/2020-07-01-mock-env/gh_action_tests.png"
+        alt/></a></p>
+<h2 id="conclusions">Conclusions</h2>
+<p>A few points have been discussed in this post:</p>
+<ol>
+<li>How to structure a back end development environment avoiding to provision extra databases.</li>
+<li>How to use <code>docker-compose</code> to set up different db instances and seed them with
+mock data.</li>
+<li>Set up Github Actions to integrate tests in the CI pipeline to check all the tables
+needed have been set up correctly.</li>
+</ol>
+</article><section class="article labels"><a class="article category" href=/categories/docker/>docker</a><a class="article category" href=/categories/python/>python</a></section><section class="article navigation"><p><a class="link" href="/post/shiny-plot-caching/"><span class="li"></span>Caching plots in Shiny</a class="link">
+    </p></section><section class="article discussion"><div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "anddt-com" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a></section></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
+<p style="flex-shrink: 0;">2020 Andrea dodet</p>
+<p><a
+    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
+    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
+    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
+</div>
+</section>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+</div>
+</body>
+
+</html>
