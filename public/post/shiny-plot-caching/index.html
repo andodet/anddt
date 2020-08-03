@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.68.3" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark"><title>Caching plots in Shiny&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
     <div class="base-body"><section id="header" class="site header max-body-width">
@@ -56,64 +56,64 @@ will be used as a test throughout this post:</p>
 <span class="nf">library</span><span class="p">(</span><span class="n">R6</span><span class="p">)</span>
 <span class="nf">library</span><span class="p">(</span><span class="n">redux</span><span class="p">)</span>
 
-<span class="n">ui</span> <span class="o">&lt;-</span> <span class="nf">fluidPage</span><span class="p">(</span><span class="nf">titlePanel</span><span class="p">(</span><span class="s">&#34;</span><span class="s">Plot Caching Test&#34;</span><span class="p">)</span><span class="p">,</span>
+<span class="n">ui</span> <span class="o">&lt;-</span> <span class="nf">fluidPage</span><span class="p">(</span><span class="nf">titlePanel</span><span class="p">(</span><span class="s">&#34;Plot Caching Test&#34;</span><span class="p">),</span>
                 
                 <span class="nf">sidebarLayout</span><span class="p">(</span><span class="nf">sidebarPanel</span><span class="p">(</span>
-                  <span class="nf">selectInput</span><span class="p">(</span><span class="s">&#34;</span><span class="s">number&#34;</span><span class="p">,</span> <span class="n">choices</span> <span class="o">=</span> <span class="nf">seq</span><span class="p">(</span><span class="m">80000</span><span class="p">,</span> <span class="m">100000</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="m">10000</span><span class="p">)</span><span class="p">,</span>
-                              <span class="n">label</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Number of points&#34;</span><span class="p">,</span> <span class="n">selected</span> <span class="o">=</span> <span class="m">5000</span><span class="p">)</span>
-                <span class="p">)</span><span class="p">,</span>
-                <span class="nf">mainPanel</span><span class="p">(</span><span class="nf">plotOutput</span><span class="p">(</span><span class="s">&#34;</span><span class="s">point_plot&#34;</span><span class="p">)</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+                  <span class="nf">selectInput</span><span class="p">(</span><span class="s">&#34;number&#34;</span><span class="p">,</span> <span class="n">choices</span> <span class="o">=</span> <span class="nf">seq</span><span class="p">(</span><span class="m">80000</span><span class="p">,</span> <span class="m">100000</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="m">10000</span><span class="p">),</span>
+                              <span class="n">label</span> <span class="o">=</span> <span class="s">&#34;Number of points&#34;</span><span class="p">,</span> <span class="n">selected</span> <span class="o">=</span> <span class="m">5000</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="nf">mainPanel</span><span class="p">(</span><span class="nf">plotOutput</span><span class="p">(</span><span class="s">&#34;point_plot&#34;</span><span class="p">))))</span>
 
 
 <span class="n">server</span> <span class="o">&lt;-</span> <span class="nf">function</span><span class="p">(</span><span class="n">input</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">{</span>
   
-  <span class="n">data</span> <span class="o">&lt;-</span> <span class="nf">reactive</span><span class="p">(</span><span class="p">{</span>
-    <span class="nf">data.frame</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span><span class="p">,</span>
-               <span class="n">y</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span><span class="p">)</span>
-  <span class="p">}</span><span class="p">)</span>
+  <span class="n">data</span> <span class="o">&lt;-</span> <span class="nf">reactive</span><span class="p">({</span>
+    <span class="nf">data.frame</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">),</span>
+               <span class="n">y</span> <span class="o">=</span> <span class="nf">rnorm</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">))</span>
+  <span class="p">})</span>
   
-  <span class="n">output</span><span class="o">$</span><span class="n">point_plot</span> <span class="o">&lt;-</span> <span class="nf">renderCachedPlot</span><span class="p">(</span><span class="p">{</span>
-    <span class="nf">ggplot</span><span class="p">(</span><span class="nf">data</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
+  <span class="n">output</span><span class="o">$</span><span class="n">point_plot</span> <span class="o">&lt;-</span> <span class="nf">renderCachedPlot</span><span class="p">({</span>
+    <span class="nf">ggplot</span><span class="p">(</span><span class="nf">data</span><span class="p">(),</span> <span class="nf">aes</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span> <span class="o">+</span>
       <span class="nf">geom_point</span><span class="p">(</span><span class="n">alpha</span> <span class="o">=</span> <span class="m">0.8</span><span class="p">)</span> <span class="o">+</span>
-      <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Random scatterplot&#34;</span><span class="p">)</span>
-  <span class="p">}</span><span class="p">,</span>
+      <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;Random scatterplot&#34;</span><span class="p">)</span>
+  <span class="p">},</span>
   <span class="n">cacheKeyExpr</span> <span class="o">=</span> <span class="p">{</span> <span class="nf">list</span><span class="p">(</span><span class="n">input</span><span class="o">$</span><span class="n">number</span><span class="p">)</span> <span class="p">}</span>
   <span class="p">)</span>
   
   
   <span class="c1"># Set up redis cache object</span>
   <span class="n">RedisCache</span> <span class="o">&lt;-</span> <span class="nf">R6Class</span><span class="p">(</span>
-    <span class="s">&#34;</span><span class="s">RedisCache&#34;</span><span class="p">,</span>
+    <span class="s">&#34;RedisCache&#34;</span><span class="p">,</span>
     <span class="n">public</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span>
       <span class="n">initialize</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="kc">...</span><span class="p">,</span> <span class="n">namespace</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">private</span><span class="o">$</span><span class="n">r</span> <span class="o">&lt;-</span> <span class="n">redux</span><span class="o">::</span><span class="nf">hiredis</span><span class="p">(</span><span class="n">host</span> <span class="o">=</span> <span class="s">&#39;</span><span class="s">127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="m">6379</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span> <span class="o">&lt;-</span> <span class="n">redux</span><span class="o">::</span><span class="nf">hiredis</span><span class="p">(</span><span class="n">host</span> <span class="o">=</span> <span class="s">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="m">6379</span><span class="p">)</span>
         
         <span class="c1"># Configure 20mb cache</span>
-        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;</span><span class="s">maxmemory&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">20mb&#34;</span><span class="p">)</span>
-        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;</span><span class="s">maxmemory-policy&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">allkeys-lru&#34;</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;maxmemory&#34;</span><span class="p">,</span> <span class="s">&#34;20mb&#34;</span><span class="p">)</span>
+        <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">CONFIG_SET</span><span class="p">(</span><span class="s">&#34;maxmemory-policy&#34;</span><span class="p">,</span> <span class="s">&#34;allkeys-lru&#34;</span><span class="p">)</span>
         <span class="n">private</span><span class="o">$</span><span class="n">namespace</span> <span class="o">&lt;-</span> <span class="n">namespace</span>
-      <span class="p">}</span><span class="p">,</span>
+      <span class="p">},</span>
       
       <span class="n">get</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="n">s_value</span> <span class="o">&lt;-</span> <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">GET</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">s_value</span><span class="p">)</span><span class="p">)</span> <span class="p">{</span>
-          <span class="nf">return</span><span class="p">(</span><span class="nf">key_missing</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+        <span class="nf">if </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">s_value</span><span class="p">))</span> <span class="p">{</span>
+          <span class="nf">return</span><span class="p">(</span><span class="nf">key_missing</span><span class="p">())</span>
         <span class="p">}</span>
         <span class="nf">unserialize</span><span class="p">(</span><span class="n">s_value</span><span class="p">)</span>
-      <span class="p">}</span><span class="p">,</span>
+      <span class="p">},</span>
       
       <span class="n">set</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">&lt;-</span> <span class="nf">paste0</span><span class="p">(</span><span class="n">private</span><span class="o">$</span><span class="n">namespace</span><span class="p">,</span> <span class="s">&#34;-&#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="n">s_value</span> <span class="o">&lt;-</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="kc">NULL</span><span class="p">)</span>
         <span class="n">private</span><span class="o">$</span><span class="n">r</span><span class="o">$</span><span class="nf">SET</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">s_value</span><span class="p">)</span>
       <span class="p">}</span>
-    <span class="p">)</span><span class="p">,</span>
+    <span class="p">),</span>
     <span class="n">private</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">r</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">,</span>
                    <span class="n">namespace</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span>
   <span class="p">)</span>
   
-  <span class="nf">shinyOptions</span><span class="p">(</span><span class="n">cache</span> <span class="o">=</span> <span class="n">RedisCache</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">namespace</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">example_app&#34;</span><span class="p">)</span><span class="p">)</span>
+  <span class="nf">shinyOptions</span><span class="p">(</span><span class="n">cache</span> <span class="o">=</span> <span class="n">RedisCache</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">namespace</span> <span class="o">=</span> <span class="s">&#34;example_app&#34;</span><span class="p">))</span>
   
 <span class="p">}</span>
 
@@ -176,11 +176,11 @@ metric against which performances will be assessed.</p>
 <div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">shinyloadtest</span><span class="p">)</span>
 
 <span class="c1"># Import laodtest runs</span>
-<span class="n">cached_200</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">200_users_cached/&#34;</span><span class="p">)</span>
-<span class="n">cached_100</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">100_users_cached/&#34;</span><span class="p">)</span>
-<span class="n">cached_50</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">50_users_cached/&#34;</span><span class="p">)</span>
-<span class="n">cached_25</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">25_users_cached/&#34;</span><span class="p">)</span>
-<span class="n">uncached_5</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;</span><span class="s">5_users_uncached/&#34;</span><span class="p">)</span>
+<span class="n">cached_200</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;200_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_100</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;100_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_50</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;50_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">cached_25</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;25_users_cached/&#34;</span><span class="p">)</span>
+<span class="n">uncached_5</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span><span class="s">&#34;5_users_uncached/&#34;</span><span class="p">)</span>
 
 <span class="c1"># Merge dataframes</span>
 <span class="n">df</span> <span class="o">&lt;-</span> <span class="nf">rbind</span><span class="p">(</span><span class="n">cached_200</span><span class="p">,</span> <span class="n">cached_100</span><span class="p">,</span> <span class="n">cached_50</span><span class="p">,</span>
@@ -209,17 +209,17 @@ metric against which performances will be assessed.</p>
 <span class="c1"># Plot session times</span>
 <span class="n">df</span> <span class="o">%&gt;%</span>
   <span class="nf">group_by</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">session_id</span><span class="p">)</span> <span class="o">%&gt;%</span> 
-  <span class="nf">summarise</span><span class="p">(</span><span class="n">tot_time</span> <span class="o">=</span> <span class="nf">sum</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="p">)</span> <span class="o">%&gt;%</span> 
-  <span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">tot_time</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">run</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
-  <span class="nf">geom_boxplot</span><span class="p">(</span><span class="p">)</span> <span class="o">+</span>
-  <span class="nf">scale_y_continuous</span><span class="p">(</span><span class="n">trans</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">log10&#34;</span><span class="p">,</span> 
-                     <span class="n">breaks</span> <span class="o">=</span> <span class="nf">trans_breaks</span><span class="p">(</span><span class="s">&#34;</span><span class="s">log10&#34;</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="m">10</span><span class="n">^x</span><span class="p">)</span><span class="p">,</span>
-                     <span class="n">labels</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="m">2</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
-  <span class="nf">scale_x_discrete</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;</span><span class="s">25 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">50 Users\n Cached&#34;</span><span class="p">,</span>
-                              <span class="s">&#34;</span><span class="s">100 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;</span><span class="s">200 Users\n Cached&#34;</span><span class="p">,</span>
-                              <span class="s">&#34;</span><span class="s">5 Users\n No Cache&#34;</span><span class="p">)</span><span class="p">)</span> <span class="o">+</span>
-  <span class="nf">theme</span><span class="p">(</span><span class="n">legend.position</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">none&#34;</span><span class="p">)</span> <span class="o">+</span>
-  <span class="nf">labs</span><span class="p">(</span><span class="n">y</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">Session time (secs)&#34;</span><span class="p">,</span>
+  <span class="nf">summarise</span><span class="p">(</span><span class="n">tot_time</span> <span class="o">=</span> <span class="nf">sum</span><span class="p">(</span><span class="n">time</span><span class="p">))</span> <span class="o">%&gt;%</span> 
+  <span class="nf">ggplot</span><span class="p">(</span><span class="nf">aes</span><span class="p">(</span><span class="n">run</span><span class="p">,</span> <span class="n">tot_time</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">run</span><span class="p">))</span> <span class="o">+</span>
+  <span class="nf">geom_boxplot</span><span class="p">()</span> <span class="o">+</span>
+  <span class="nf">scale_y_continuous</span><span class="p">(</span><span class="n">trans</span> <span class="o">=</span> <span class="s">&#34;log10&#34;</span><span class="p">,</span> 
+                     <span class="n">breaks</span> <span class="o">=</span> <span class="nf">trans_breaks</span><span class="p">(</span><span class="s">&#34;log10&#34;</span><span class="p">,</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="m">10</span><span class="n">^x</span><span class="p">),</span>
+                     <span class="n">labels</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="m">2</span><span class="p">))</span> <span class="o">+</span>
+  <span class="nf">scale_x_discrete</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#34;25 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;50 Users\n Cached&#34;</span><span class="p">,</span>
+                              <span class="s">&#34;100 Users\n Cached&#34;</span><span class="p">,</span> <span class="s">&#34;200 Users\n Cached&#34;</span><span class="p">,</span>
+                              <span class="s">&#34;5 Users\n No Cache&#34;</span><span class="p">))</span> <span class="o">+</span>
+  <span class="nf">theme</span><span class="p">(</span><span class="n">legend.position</span> <span class="o">=</span> <span class="s">&#34;none&#34;</span><span class="p">)</span> <span class="o">+</span>
+  <span class="nf">labs</span><span class="p">(</span><span class="n">y</span> <span class="o">=</span> <span class="s">&#34;Session time (secs)&#34;</span><span class="p">,</span>
        <span class="n">x</span> <span class="o">=</span> <span class="kc">NULL</span><span class="p">)</span>
 </code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
   href="/images/2020-03-03-caching-shiny-plots/sess_time-1.png"><img  src="/images/2020-03-03-caching-shiny-plots/sess_time-1.png"
@@ -253,11 +253,11 @@ crunching all the test run files:</p>
 <div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">shinyloadtest</span><span class="p">)</span>
 
 <span class="n">df</span> <span class="o">&lt;-</span> <span class="nf">load_runs</span><span class="p">(</span>
-  <span class="n">`5_uncached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">5_users_uncached/&#34;</span><span class="p">,</span>
-  <span class="n">`25_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">25_users_cached/&#34;</span><span class="p">,</span>
-  <span class="n">`50_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">50_users_cached/&#34;</span><span class="p">,</span>
-  <span class="n">`100_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">100_users_cached/&#34;</span><span class="p">,</span>
-  <span class="n">`200_cached`</span> <span class="o">=</span> <span class="s">&#34;</span><span class="s">200_users_cached/&#34;</span>
+  <span class="n">`5_uncached`</span> <span class="o">=</span> <span class="s">&#34;5_users_uncached/&#34;</span><span class="p">,</span>
+  <span class="n">`25_cached`</span> <span class="o">=</span> <span class="s">&#34;25_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`50_cached`</span> <span class="o">=</span> <span class="s">&#34;50_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`100_cached`</span> <span class="o">=</span> <span class="s">&#34;100_users_cached/&#34;</span><span class="p">,</span>
+  <span class="n">`200_cached`</span> <span class="o">=</span> <span class="s">&#34;200_users_cached/&#34;</span>
 <span class="p">)</span>
 
 <span class="c1"># Make report</span>

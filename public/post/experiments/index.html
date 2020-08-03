@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.68.3" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark"><title>Experiments&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
     <div class="base-body"><section id="header" class="site header max-body-width">
     <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
         <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
-    <h1 class="article title">Experiments</h1><p class="article date">Wednesday, January 8, 2020</p></section><article class="article markdown-body"><p>I've always found well-written essays particularly fascinating, to the point that I've decided to experiment on finding
+    <h1 class="article title">Experiments</h1><p class="article date">Wednesday, January 8, 2020</p></section><article class="article markdown-body"><p>I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding
 a method to convey  messages effectively that suits me. In order to feel committed, I purchased a domain on <a href="https://domains.google"target="_blank">Google Domains</a>
 (took 5 minutes in total and €15) and hosted this basic website. I have always used <a href="https://www.r-project.org"target="_blank">R</a> at work and I am planning to transition
 from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.
 Landing on Hugo as a blogging platform has been somewhat of a natural decision:</p>
 <ul>
-<li>stupidly easy to use (just choose a theme and write your posts in markdown, tweaking theme's .css file as needed)</li>
+<li>stupidly easy to use (just choose a theme and write your posts in markdown, tweaking theme&rsquo;s .css file as needed)</li>
 <li>deployed on github and hosted for free on <a href="https://netlify.com"target="_blank">netlify</a> (5 minutes in total)</li>
-<li>good syntax highlighting: this will be crucial as I'll be mainly writing about R and analytics in general</li>
+<li>good syntax highlighting: this will be crucial as I&rsquo;ll be mainly writing about R and analytics in general</li>
 </ul>
 <h2 id="getting-started">Getting started</h2>
 <p>Setting everything up has taken an hour at most. First of all, purchase a domain from whatever registrar you choose
-(I've chosen <a href="https://domains.google"target="_blank">Google Domains</a> to avoid registering and verifying a new account).
-Below the steps I've followed to install hugo on my Linux machine (I went for the &lsquo;longish&rsquo; route as <code>sudo apt-get install hugo</code> was
+(I&rsquo;ve chosen <a href="https://domains.google"target="_blank">Google Domains</a> to avoid registering and verifying a new account).
+Below the steps I&rsquo;ve followed to install hugo on my Linux machine (I went for the &lsquo;longish&rsquo; route as <code>sudo apt-get install hugo</code> was
 installing an old version which gave problem with the theme I chose). All the steps listed below are explained at length on <a href="https://gohugo.io/documentation/"target="_blank">Hugo docs</a>.</p>
-<p>To follow the steps above you need to download the right tarfile from your system from Hugo's <a href="https://github.com/gohugoio/hugo/releases"target="_blank">github repo</a></p>
+<p>To follow the steps above you need to download the right tarfile from your system from Hugo&rsquo;s <a href="https://github.com/gohugoio/hugo/releases"target="_blank">github repo</a></p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># Move downloaded tarball and extract it</span> 
 sudo mv ~/Donwloads/hugo_0.62.2_Linux-64bit.tar.gz /usr/local/bin/
 sudo tar -xvzf /usr/local/bin/hugo_0.62.2_Linux-64bit.tar.gz
@@ -51,7 +51,7 @@ Depending on your theme, you can customize your website by editing fields in <co
 <p>Creating content in Hugo is as simple as launching <code>hugo new my_first_post.md</code> and editing the newly created markdown file.</p>
 <h2 id="hosting">Hosting</h2>
 <p>I am currently experimenting with GCP, but the steps to host a simple static website in a cloud Storage Bucket were kind of overwhelming for a beginner
-(putting a load balancer in front of the bucket to get https certificates working). Because of that, I've decided to opt for netlify's free plan instead.
+(putting a load balancer in front of the bucket to get https certificates working). Because of that, I&rsquo;ve decided to opt for netlify&rsquo;s free plan instead.
 Hosting a website is as simple as:</p>
 <ul>
 <li>Opening an account</li>

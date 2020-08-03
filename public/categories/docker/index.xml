@@ -18,7 +18,7 @@
       <pubDate>Wed, 01 Jul 2020 00:00:00 +0000</pubDate>
       
       <guid>/post/mock-environment/</guid>
-      <description>In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&#39;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&#39;ve found this approach quite handy for three reasons:
+      <description>In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&amp;rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&amp;rsquo;ve found this approach quite handy for three reasons:
  No time wasted on finding the right dataset in the interwebs.</description>
     </item>
     

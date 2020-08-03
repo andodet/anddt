@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.2" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.68.3" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="supported-color-schemes" content="light dark"><title>Setting up a data-playground with docker-compose and Faker&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
     <div class="base-body"><section id="header" class="site header max-body-width">
@@ -7,13 +7,13 @@
         <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
     <h1 class="article title">Setting up a data-playground with docker-compose and Faker</h1><p class="article date">Wednesday, July 1, 2020</p></section><article class="article markdown-body"><p>In the past few days I played around with <a href="https://airflow.apache.org/"target="_blank">Airflow</a> to
 get familiar with its DAG syntax. Instead of scrambling around to find the right dataset
-to be imported in a MySQL instance I've decided to set-up a development environment
+to be imported in a MySQL instance I&rsquo;ve decided to set-up a development environment
 from scratch that allowed me to quickly change the structure and type of data as I pleased.
-I've found this approach quite handy for three reasons:</p>
+I&rsquo;ve found this approach quite handy for three reasons:</p>
 <ol>
 <li>No time wasted on finding the right dataset in the interwebs.</li>
 <li>Very easy to extend and adapt to any scenario.</li>
-<li>Completely free: running locally, there's no need to provision and
+<li>Completely free: running locally, there&rsquo;s no need to provision and
 manage a small database instance.</li>
 </ol>
 <p>Beyond being a very easy way to set up a data playground, the following approach can also
@@ -46,25 +46,25 @@ process, with the only restriction of waiting for the db to be up before seeding
 entries. In order to wait for the db it will be enough to specify <code>depends_on</code> on the
 seeding service and <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py#L37"target="_blank">wait</a>
 for the db connection to be ready in the seeding scripts.</p>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
 </span><span class="w">
-</span><span class="w"></span>services<span class="p">:</span><span class="w">
-</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
-</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mariadb<span class="p">:</span><span class="m">10.5</span><span class="w"> 
-</span><span class="w">    </span>container_name<span class="p">:</span><span class="w"> </span>mysql_db<span class="w">
-</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
-</span><span class="w">    </span>expose<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306&#34;</span><span class="w">
-</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
-</span><span class="w">      </span>MYSQL_ROOT_PASSWORD<span class="p">:</span><span class="w"> </span><span class="s2">&#34;root&#34;</span><span class="w">
-</span><span class="w">      </span>MYSQL_DATABASE<span class="p">:</span><span class="w"> </span><span class="s2">&#34;database&#34;</span><span class="w">
+</span><span class="w"></span><span class="k">services</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">mysql</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">image</span><span class="p">:</span><span class="w"> </span>mariadb<span class="p">:</span><span class="m">10.5</span><span class="w"> 
+</span><span class="w">    </span><span class="k">container_name</span><span class="p">:</span><span class="w"> </span>mysql_db<span class="w">
+</span><span class="w">    </span><span class="k">ports</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- <span class="s2">&#34;3306:3306&#34;</span><span class="w">
+</span><span class="w">    </span><span class="k">expose</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- <span class="s2">&#34;3306&#34;</span><span class="w">
+</span><span class="w">    </span><span class="k">environment</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span><span class="k">MYSQL_ROOT_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;root&#34;</span><span class="w">
+</span><span class="w">      </span><span class="k">MYSQL_DATABASE</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;database&#34;</span><span class="w">
 </span><span class="w">
-</span><span class="w">  </span>mysql_seeding<span class="p">:</span><span class="w">
-</span><span class="w">    </span>container_name<span class="p">:</span><span class="w"> </span>mysql_seeding<span class="w">
-</span><span class="w">    </span>build<span class="p">:</span><span class="w"> </span>./local-dev/mysql-seeding<span class="w">
-</span><span class="w">    </span>depends_on<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>mysql<span class="w">  
+</span><span class="w">  </span><span class="k">mysql_seeding</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">container_name</span><span class="p">:</span><span class="w"> </span>mysql_seeding<span class="w">
+</span><span class="w">    </span><span class="k">build</span><span class="p">:</span><span class="w"> </span>./local-dev/mysql-seeding<span class="w">
+</span><span class="w">    </span><span class="k">depends_on</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- mysql<span class="w">  
 </span></code></pre></div><p>The repo offers a <code>docker-compose.cli.yaml</code> file with an additional test container that will
 take care of checking that all the tables have been set up properly. We can check
 everything works locally by pointing <code>docker-compose</code> to the alternate file with
@@ -204,23 +204,23 @@ a <em>users</em> and a <em>transactions</em> table structured as shown below.</p
 of built-in data providers to replicate pretty much any entry (emails, addresses, zip codes, etc.).
 As an example <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py"target="_blank">seed_transactions.py</a>
 will create 2.000 transactions for the same user ids created by <code>seed_users.py</code>.</p>
-<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">insert_transactions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="p">:</span>
-    <span class="n">uids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_users</span><span class="p">(</span><span class="p">)</span>
-    <span class="n">transactions</span> <span class="o">=</span> <span class="p">[</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span><span class="p">:</span>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">insert_transactions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">uids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_users</span><span class="p">()</span>
+    <span class="n">transactions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">):</span>
         <span class="n">transaction</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">order_id</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pyint</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">9999</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">user_id</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">uids</span><span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">ts</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">date_time</span><span class="p">(</span><span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">amount</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pydecimal</span><span class="p">(</span>
+            <span class="s2">&#34;order_id&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pyint</span><span class="p">(</span><span class="n">min_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">9999</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="s2">&#34;user_id&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">uids</span><span class="p">),</span>
+            <span class="s2">&#34;ts&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">date_time</span><span class="p">(),</span>
+            <span class="s2">&#34;amount&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">pydecimal</span><span class="p">(</span>
                 <span class="n">left_digits</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">right_digits</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="mi">1</span>
-            <span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">currency_code</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">currency_code</span><span class="p">(</span><span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">item</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">constants</span><span class="p">[</span><span class="sa"></span><span class="s1">&#39;</span><span class="s1">products</span><span class="s1">&#39;</span><span class="p">]</span><span class="p">)</span><span class="p">,</span>
-            <span class="sa"></span><span class="s2">&#34;</span><span class="s2">is_premium</span><span class="s2">&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">boolean</span><span class="p">(</span><span class="n">chance_of_getting_true</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s2">&#34;currency_code&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">currency_code</span><span class="p">(),</span>
+            <span class="s2">&#34;item&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">constants</span><span class="p">[</span><span class="s1">&#39;products&#39;</span><span class="p">]),</span>
+            <span class="s2">&#34;is_premium&#34;</span><span class="p">:</span> <span class="n">faker</span><span class="o">.</span><span class="n">boolean</span><span class="p">(</span><span class="n">chance_of_getting_true</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
         <span class="p">}</span>
         <span class="n">transactions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Transactions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="n">transactions</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Transactions</span><span class="o">.</span><span class="n">insert</span><span class="p">(),</span> <span class="n">transactions</span><span class="p">)</span>
 </code></pre></div><h2 id="testing-everything-works-fine">Testing everything works fine</h2>
 <p>In order to test that everything works flawlessly, a second docker-compose file is included
 in the repo. This file has the same content of the original one except for spawning an
@@ -230,7 +230,7 @@ can be used to set up a db connection before launching the actual tests:</p>
 <div class="highlight"><pre class="chroma"><code class="language-py" data-lang="py"><span class="kn">import</span> <span class="nn">pytest</span>
 
 <span class="nd">@pytest.fixture</span>
-<span class="k">def</span> <span class="nf">db_conn</span><span class="p">(</span><span class="p">)</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">db_conn</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
         <span class="n">create_engine</span><span class="p">,</span>
         <span class="n">engine</span>
@@ -239,32 +239,32 @@ can be used to set up a db connection before launching the actual tests:</p>
     <span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">InterfaceError</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">drivername</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">mysql+mysqlconnector</span><span class="s2">&#34;</span><span class="p">,</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">username</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">root</span><span class="s2">&#34;</span><span class="p">,</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">password</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">root</span><span class="s2">&#34;</span><span class="p">,</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">host</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">mysql</span><span class="s2">&#34;</span><span class="p">,</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">port</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">3306</span><span class="s2">&#34;</span><span class="p">,</span>
-    <span class="sa"></span><span class="s2">&#34;</span><span class="s2">database</span><span class="s2">&#34;</span><span class="p">:</span> <span class="sa"></span><span class="s2">&#34;</span><span class="s2">database</span><span class="s2">&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;drivername&#34;</span><span class="p">:</span> <span class="s2">&#34;mysql+mysqlconnector&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;username&#34;</span><span class="p">:</span> <span class="s2">&#34;root&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;password&#34;</span><span class="p">:</span> <span class="s2">&#34;root&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;host&#34;</span><span class="p">:</span> <span class="s2">&#34;mysql&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;port&#34;</span><span class="p">:</span> <span class="s2">&#34;3306&#34;</span><span class="p">,</span>
+    <span class="s2">&#34;database&#34;</span><span class="p">:</span> <span class="s2">&#34;database&#34;</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="n">Base</span> <span class="o">=</span> <span class="n">automap_base</span><span class="p">(</span><span class="p">)</span> 
+    <span class="n">Base</span> <span class="o">=</span> <span class="n">automap_base</span><span class="p">()</span> 
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="o">*</span><span class="o">*</span><span class="n">config</span><span class="p">)</span><span class="p">)</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">URL</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">))</span>
     <span class="k">except</span> <span class="n">InterfaceError</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">Something went wrong while connecting to MySQL db</span><span class="s2">&#34;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&#34;Something went wrong while connecting to MySQL db&#34;</span><span class="p">)</span>
 
     <span class="n">Base</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">reflect</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">yield</span>  <span class="n">engine</span>
-    <span class="k">print</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">Disposing engine</span><span class="s2">&#34;</span><span class="p">)</span>
-    <span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">(</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&#34;Disposing engine&#34;</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">dispose</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">test_user_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">)</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">users</span><span class="s2">&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span>
+<span class="k">def</span> <span class="nf">test_user_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="s2">&#34;users&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span>
 
-<span class="k">def</span> <span class="nf">test_tx_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">)</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="sa"></span><span class="s2">&#34;</span><span class="s2">transactions</span><span class="s2">&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span> 
+<span class="k">def</span> <span class="nf">test_tx_table_exists</span><span class="p">(</span><span class="n">db_conn</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">db_conn</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="s2">&#34;transactions&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span> 
 </code></pre></div><h2 id="setting-up-github-actions">Setting up Github Actions</h2>
 <p>In order to make sure that no change will break the environment, the above mentioned
 docker-compose file can be integrated as a CI step as a Github Action. In a nutshell,
@@ -272,34 +272,36 @@ the action will take care of building the images, setting up the containers and 
 <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/tests/tests.py"target="_blank"><code>tests.py</code></a> file.
 The workflow is pretty basic and it will be triggered both both on new pull requests
 and every time a commit will be pushed to master.</p>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">name<span class="p">:</span><span class="w"> </span>run-tests<span class="w">
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">name</span><span class="p">:</span><span class="w"> </span>run-tests<span class="w">
 </span><span class="w">
-</span><span class="w"></span>on<span class="p">:</span><span class="w">
-</span><span class="w">  </span>push<span class="p">:</span><span class="w">
-</span><span class="w">    </span>branches<span class="p">:</span><span class="w"> </span>master<span class="w">
-</span><span class="w">  </span>pull_request<span class="p">:</span><span class="w">
-</span><span class="w">    </span>branches<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>master<span class="w">
+</span><span class="w"></span><span class="k">on</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">push</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">branches</span><span class="p">:</span><span class="w"> </span>master<span class="w">
+</span><span class="w">  </span><span class="k">pull_request</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">branches</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- master<span class="w">
 </span><span class="w">
-</span><span class="w"></span>jobs<span class="p">:</span><span class="w">
-</span><span class="w">  </span>build<span class="p">:</span><span class="w">
-</span><span class="w">    </span>runs-on<span class="p">:</span><span class="w"> </span>ubuntu-latest<span class="w">
+</span><span class="w"></span><span class="k">jobs</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">build</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">runs-on</span><span class="p">:</span><span class="w"> </span>ubuntu-latest<span class="w">
 </span><span class="w">
-</span><span class="w">    </span>steps<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>uses<span class="p">:</span><span class="w"> </span>actions/checkout@v2<span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Build<span class="w"> </span>containers<span class="w">
-</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.cli.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Start<span class="w"> </span>db<span class="w">
-</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_db<span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Seed<span class="w"> </span>db<span class="w"> </span>mock<span class="w"> </span>entries<span class="w">
-</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding<span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>Run<span class="w"> </span>tests<span class="w">
-</span><span class="w">      </span>run<span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding_test<span class="w"> </span>--attach<span class="w">
+</span><span class="w">    </span><span class="k">steps</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span>- <span class="k">uses</span><span class="p">:</span><span class="w"> </span>actions/checkout@v2<span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Build<span class="w"> </span>containers<span class="w">
+</span><span class="w">      </span><span class="k">run</span><span class="p">:</span><span class="w"> </span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.cli.yaml<span class="w"> </span>up<span class="w"> </span>-d<span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Start<span class="w"> </span>db<span class="w">
+</span><span class="w">      </span><span class="k">run</span><span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_db<span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Seed<span class="w"> </span>db<span class="w"> </span>mock<span class="w"> </span>entries<span class="w">
+</span><span class="w">      </span><span class="k">run</span><span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding<span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Run<span class="w"> </span>tests<span class="w">
+</span><span class="w">      </span><span class="k">run</span><span class="p">:</span><span class="w"> </span>docker<span class="w"> </span>start<span class="w"> </span>mysql_seeding_test<span class="w"> </span>--attach<span class="w">
 </span></code></pre></div><p>The <code>--attach</code> flag will send the output of the test script to stdout, allowing to be
 inspected further.</p>
 <p><a target="_blank" rel="noopener noreferrer" 
   href="/images/2020-07-01-mock-env/gh_action_tests.png"><img  src="/images/2020-07-01-mock-env/gh_action_tests.png"
         alt/></a></p>
+<p><strong>edit</strong>: For some reason, using the <code>--attach</code> flag when running tests gets Github Actions to hang
+until the step will timeout (~ 6hrs).</p>
 <h2 id="conclusions">Conclusions</h2>
 <p>A few points have been discussed in this post:</p>
 <ol>
