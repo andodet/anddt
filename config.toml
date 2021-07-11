@@ -1,7 +1,7 @@
-baseURL = "https://anddt.com"
+seURL = "https://anddt.com"
 title = "Andrea Dodet"
-theme = "hugo-notepadium"
-copyright = "2020 Andrea dodet"
+theme = "cactus"
+copyright = "2021 Andrea dodet"
 
 languageCode = "en-gb"
 hasCJKLanguage = true
@@ -9,42 +9,49 @@ hasCJKLanguage = true
 enableRobotsTXT = true
 
 # Enable Disqus
+[params.comments]
+enabled = true
+engine = 'disqus'
 disqusShortname = "anddt-com"
 
 # Google Analytics
 googleAnalytics = "UA-58930119-2"
 
-[markup.highlight]
-codeFences = true
-noClasses = false
-
-[markup.goldmark.renderer]
-unsafe = true  # enable raw HTML in Markdown
-
 [params]
-style = "light"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
-dateFormat = "Monday, January 2, 2006"  # if unset, default is "2006-01-02"
+colortheme = "white"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
 logo = "logo.png"  # if you have a logo png
-slogan = "Jotting down things I'd like to understand"
+description = "Jotting down things I'd like to understand"
+showAllPostsOnHomePage = true
+postOnHomePage = 15
 license = ""  # CC License
+rss = true
 
-[params.comments]
-enable = false  # En/Disable comments globally, default: false. You can always enable comments on per page.
+[[params.social]]
+name = 'github'
+link = 'https://github.com/andodet'
+
+[[params.social]]
+name = 'twitter'
+link = 'https://twitter.com/andodet'
+
+[[params.social]]
+name = 'linkedin'
+link = 'https://www.linkedin.com/in/andodet/?locale=en_US'
 
 [params.math]
 enable = false  # optional: true, false. Enable globally, default: false. You can always enable math on per page.
 use = "katex"  # option: "katex", "mathjax". default: "katex"
 
-[params.syntax]
-use = "none"  # builtin: "prismjs", "hljs". "none" means Chroma
-theme = "xcode"
-darkTheme = "monokai"  # apply this theme in dark mode
+[markup]
+[markup.highlight]
+codefences = true
+codeFences = true
+guessSyntax = true
+hl_Lines = ""
+lineNoStart = 1
+lineNos = false
+lineNumbersInTable = true
+noClasses = true
+style = "pygments"
+tabWidth = 4
 
-[params.nav]
-showCategories = true       # /categories/
-showTags = false            # /tags/
-
-# custom navigation items
-[[params.nav.custom]]
-#title = "About"
-#url = "/about"

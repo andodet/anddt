@@ -1,35 +1,185 @@
 <!DOCTYPE html>
-<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.68.3" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark"><title>Andrea Dodet&nbsp;&ndash;&nbsp;Jotting down things I&#39;d like to understand</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><link rel="alternate" type="application/rss+xml" href="/index.xml" title="Andrea Dodet" /><body>
-    <div class="base-body"><section id="header" class="site header max-body-width">
-    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
-        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><ul class="note list"><li class="item"><a class="note" href="/post/mock-environment/">
-            <p class="note title">Setting up a data-playground with docker-compose and Faker</p><p class="note date">Wednesday, July 1, 2020</p><p class="note content">In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&rsquo;ve found this approach quite handy for three reasons:
- No time wasted on finding the right dataset in the interwebs.<span class="mldr">&mldr;more</span></p></a><p class="note labels"><a class="note category" href="/categories/docker/">docker</a><a class="note category" href="/categories/python/">python</a></p></li><li class="item"><a class="note" href="/post/shiny-plot-caching/">
-            <p class="note title">Caching plots in Shiny</p><p class="note date">Tuesday, March 3, 2020</p><p class="note content">Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.<span class="mldr">&mldr;more</span></p></a><p class="note labels"><a class="note category" href="/categories/r/">R</a><a class="note tag" href="/tags/shiny/">shiny</a></p></li><li class="item"><a class="note" href="/post/gcp-functions/">
-            <p class="note title">Hosting simple scripts for cheap on GCP</p><p class="note date">Tuesday, February 4, 2020</p><p class="note content">On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
-I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf.<span class="mldr">&mldr;more</span></p></a><p class="note labels"><a class="note category" href="/categories/python/">Python</a><a class="note tag" href="/tags/gcp/">gcp</a></p></li><li class="item"><a class="note" href="/post/location-history/">
-            <p class="note title">Digging into Google location history</p><p class="note date">Thursday, January 16, 2020</p><p class="note content">Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good).<span class="mldr">&mldr;more</span></p></a><p class="note labels"><a class="note category" href="/categories/r/">R</a><a class="note tag" href="/tags/eda/">eda</a></p></li><li class="item"><a class="note" href="/post/experiments/">
-            <p class="note title">Experiments</p><p class="note date">Wednesday, January 8, 2020</p><p class="note content">I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.<span class="mldr">&mldr;more</span></p></a></li></ul></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
-<p style="flex-shrink: 0;">2020 Andrea dodet</p>
-<p><a
-    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
-    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
-    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
-</div>
-</section>
-<script type="application/javascript">
-var doNotTrack = false;
-if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-	ga('create', 'UA-58930119-2', 'auto');
-	
-	ga('send', 'pageview');
-}
-</script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
-</div>
+<html lang="en-gb">
+<head>
+	<meta name="generator" content="Hugo 0.85.0" />
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Andrea Dodet</title>
+  <link rel = 'canonical' href = '/'>
+  <meta name="description" content="Jotting down things I&#39;d like to understand">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="all,follow">
+  <meta name="googlebot" content="index,follow,snippet,archive">
+  <meta property="og:title" content="Andrea Dodet" />
+<meta property="og:description" content="Jotting down things I&#39;d like to understand" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/" />
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Andrea Dodet"/>
+<meta name="twitter:description" content="Jotting down things I&#39;d like to understand"/>
+
+  
+  
+    
+  
+  
+  <link rel="stylesheet" href="/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css" integrity="sha512-lPZT6eFR4oBnp8XbvEYAy9WjxyHnn6r5ceUjxA87JJuOTyC7V4EN//qNVZylwUD9VutM2cCFMROtCOZq/bCL3Q=="> 
+
+  
+  
+  
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  
+
+  
+<link rel="icon" type="image/png" href="images/favicon.ico" />
+
+  
+  
+    <link href="/index.xml" rel="alternate" type="application/rss+xml" title="Andrea Dodet" />
+  
+  
+  
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+  <div class="content index py4">
+
+    <header id="header">
+  <a href="">
+  
+    <div id="logo" style="background-image: url(logo.png)"></div>
+  
+  <div id="title">
+    <h1>Andrea Dodet</h1>
+  </div>
+  </a>
+  <div id="nav">
+    <ul>
+      <li class="icon">
+        <a href="#" aria-label="Menu"><i class="fas fa-bars fa-2x" aria-hidden="true"></i></a>
+      </li>
+      
+    </ul>
+  </div>
+</header>
+
+
+
+    
+  <section id="about">
+  
+    Jotting down things I&rsquo;d like to understand
+  
+  
+      <p>Find me on
+      
+      
+      
+        <a class="icon" target="_blank" rel="noopener" href="https://github.com/andodet" aria-label="github">
+          <i class="fab fa-github" aria-hidden="true"></i>
+        </a>
+        
+         , 
+      
+      
+        <a class="icon" target="_blank" rel="noopener" href="https://twitter.com/andodet" aria-label="twitter">
+          <i class="fab fa-twitter" aria-hidden="true"></i>
+        </a>
+        
+         and 
+      
+      
+        <a class="icon" target="_blank" rel="noopener" href="https://www.linkedin.com/in/andodet/?locale=en_US" aria-label="linkedin">
+          <i class="fab fa-linkedin" aria-hidden="true"></i>
+        </a>
+        
+        .
+      
+      </p>
+  
+  
+  </section>
+
+  <section id="writing">
+    <span class="h1"><a href="">Writings</a></span>
+    
+
+    
+    
+      
+    
+    
+    
+    
+    <ul class="post-list">
+      
+        <li class="post-item">
+          <div class="meta"><time datetime="2020-07-01 00:00:00 &#43;0000 UTC" itemprop="datePublished">2020-07-01</time></div>
+          <span><a href="/post/mock-environment/">Setting up a data-playground with docker-compose and Faker</a></span>
+        </li>
+      
+        <li class="post-item">
+          <div class="meta"><time datetime="2020-03-03 00:00:00 &#43;0000 UTC" itemprop="datePublished">2020-03-03</time></div>
+          <span><a href="/post/shiny-plot-caching/">Caching plots in Shiny</a></span>
+        </li>
+      
+        <li class="post-item">
+          <div class="meta"><time datetime="2020-02-04 00:00:00 &#43;0000 UTC" itemprop="datePublished">2020-02-04</time></div>
+          <span><a href="/post/gcp-functions/">Hosting simple scripts for cheap on GCP</a></span>
+        </li>
+      
+        <li class="post-item">
+          <div class="meta"><time datetime="2020-01-16 00:00:00 &#43;0000 UTC" itemprop="datePublished">2020-01-16</time></div>
+          <span><a href="/post/location-history/">Digging into Google location history</a></span>
+        </li>
+      
+        <li class="post-item">
+          <div class="meta"><time datetime="2020-01-08 20:36:36 &#43;0100 CET" itemprop="datePublished">2020-01-08</time></div>
+          <span><a href="/post/experiments/">Experiments</a></span>
+        </li>
+      
+    </ul>
+
+    
+
+
+
+    
+  </section>
+
+  
+  
+  
+
+
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright  &copy; 2021  2021 Andrea dodet 
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+
+  </div>
 </body>
 
+<link rel="stylesheet" href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
 </html>

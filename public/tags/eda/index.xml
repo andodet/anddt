@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>eda on Andrea Dodet</title>
@@ -6,12 +6,8 @@
     <description>Recent content in eda on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <copyright>2020 Andrea dodet</copyright>
-    <lastBuildDate>Thu, 16 Jan 2020 00:00:00 +0000</lastBuildDate>
-    
-        <atom:link href="/tags/eda/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <copyright>2021 Andrea dodet</copyright>
+    <lastBuildDate>Thu, 16 Jan 2020 00:00:00 +0000</lastBuildDate><atom:link href="/tags/eda/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Digging into Google location history</title>
       <link>/post/location-history/</link>
