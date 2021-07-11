@@ -1,23 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>docker on Andrea Dodet</title>
-    <link>/categories/docker/</link>
+    <link>https://anddt.com/categories/docker/</link>
     <description>Recent content in docker on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2020 Andrea dodet</copyright>
-    <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate>
-    
-        <atom:link href="/categories/docker/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/categories/docker/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Setting up a data-playground with docker-compose and Faker</title>
-      <link>/post/mock-environment/</link>
+      <link>https://anddt.com/post/mock-environment/</link>
       <pubDate>Wed, 01 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/mock-environment/</guid>
+      <guid>https://anddt.com/post/mock-environment/</guid>
       <description>In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&amp;rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&amp;rsquo;ve found this approach quite handy for three reasons:
  No time wasted on finding the right dataset in the interwebs.</description>
     </item>

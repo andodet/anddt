@@ -1,11 +1,97 @@
 <!DOCTYPE html>
-<html lang="en"><meta charset="utf-8"><meta name="generator" content="Hugo 0.68.3" /><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark"><title>Digging into Google location history&nbsp;&ndash;&nbsp;Andrea Dodet</title><link rel="stylesheet" href="/css/core.min.b429595a069f20bd817d95bdd1905268d135e6a2282314b55820fbe499d5c2a0107c73f6ee1765dde090fddabb60708f.css" integrity="sha384-tClZWgafIL2BfZW90ZBSaNE15qIoIxS1WCD75JnVwqAQfHP27hdl3eCQ/dq7YHCP"><body>
-    <div class="base-body"><section id="header" class="site header max-body-width">
-    <div class="header wrap"><span class="header left-side"><a class="site home" href="/"><img class="site logo" src="/logo.png" alt /><span class="site name">Andrea Dodet</span></a></span>
-        <span class="header right-side"><div class="nav wrap"><nav class="nav"><a class="nav item" href="/categories/">Categories</a><a class="nav item" href=""></a></nav></div></span></div><div class="site slogan"><span class="title">Jotting down things I'd like to understand</span></div></section><div id="content" class="max-body-width"><section class="article header">
-    <h1 class="article title">Digging into Google location history</h1><p class="article date">Thursday, January 16, 2020</p></section><article class="article markdown-body"><ul>
+<html lang="en-gb">
+<head>
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title> Digging into Google location history | Andrea Dodet</title>
+  <link rel = 'canonical' href = 'https://anddt.com/post/location-history/'>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="all,follow">
+  <meta name="googlebot" content="index,follow,snippet,archive">
+  <meta property="og:title" content="Digging into Google location history" />
+<meta property="og:description" content="Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good)." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://anddt.com/post/location-history/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2020-01-16T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-01-16T00:00:00+00:00" />
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Digging into Google location history"/>
+<meta name="twitter:description" content="Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good)."/>
+
+  
+  
+  
+  <link rel="stylesheet" href="https://anddt.com/scss/style.scss" integrity=""> 
+
+  
+  
+  
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  
+
+  
+<link rel="icon" type="image/png" href="https://anddt.com/images/favicon.ico" />
+
+  
+  
+  
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+  
+  
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+  <div class="content index py4">
+
+    <header id="header">
+  <a href="https://anddt.com">
+  
+    <div id="logo" style="background-image: url(https://anddt.com/images/logo.png)"></div>
+  
+  <div id="title">
+    <h1>Andrea Dodet</h1>
+  </div>
+  </a>
+  <div id="nav">
+    <ul>
+      <li class="icon">
+        <a href="#" aria-label="Menu"><i class="fas fa-bars fa-2x" aria-hidden="true"></i></a>
+      </li>
+      
+    </ul>
+  </div>
+</header>
+
+
+
+    
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <div class="content" itemprop="articleBody">
+  
+    <ul>
 <li><a href="#setup">Setup</a></li>
 <li><a href="#data-preprocess">Data preprocess</a></li>
 <li><a href="#how-big-is-the-dataset">How big is the dataset?</a></li>
@@ -23,7 +109,7 @@ long?</a></li>
 <p>By the end of the year I received a mail from Google with a recap of my
 location history for 2019 and didn’t pay much attention to it right away
 ( other than thinking to turn location services off for good). Since the
-data is available (you can download from <a href="https://takeout.google.com/settings/takeout"target="_blank">Google
+data is available (you can download from <a href="https://takeout.google.com/settings/takeout">Google
 Takeout</a>), I thought it’d
 be fun to poke into it and get something out of it.<br>
 I’ve ditched my iPhone 4s in 2013 and sticked to Android ever since,
@@ -31,7 +117,7 @@ totaling almost 6 full years worth of location history
 (<code>Takeout/Location History.json</code> totals ~420mb). Since dealing with
 large json files can be slow in R, exporting a serialized dataset with
 <code>saveRDS</code> can speed things up a fair bit.</p>
-<p>The raw notebook can be found in <a href="https://github.com/andodet/notebooks/blob/master/location-history/location-history.md"target="_blank">this</a> github repo.</p>
+<p>The raw notebook can be found in <a href="https://github.com/andodet/notebooks/blob/master/location-history/location-history.md">this</a> github repo.</p>
 <h2 id="setup">Setup</h2>
 <div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">options</span><span class="p">(</span><span class="n">scipen</span> <span class="o">=</span> <span class="m">999</span><span class="p">)</span>
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span>
@@ -218,13 +304,11 @@ hard time pinpointing my exact location.</p>
   <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">))</span>
 
 <span class="nf">grid.arrange</span><span class="p">(</span><span class="n">acc_dist</span><span class="p">,</span> <span class="n">acc_trend</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">1</span><span class="p">)</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/accuracy_plots-1.png"><img  src="/images/2020-01-16-location-history/accuracy_plots-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/accuracy_plots-1.png" alt=""><!-- --></p>
 <h2 id="plot-data-on-maps">Plot data on maps</h2>
 <p>Over the past 7 years I had the lucky opportunity to study and work in 3
 European cities (Milan, Copenhagen and London). Using
-<a href="https://github.com/dkahle/ggmap"target="_blank"><code>ggmap</code></a> we can easily plot location
+<a href="https://github.com/dkahle/ggmap"><code>ggmap</code></a> we can easily plot location
 data on maps using the good old <code>ggplot</code> syntax.</p>
 <div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="c1"># Retrieve maps from Google Maps api</span>
 <span class="n">maps</span> <span class="o">&lt;-</span> <span class="nf">list</span><span class="p">(</span>
@@ -250,9 +334,7 @@ data on maps using the good old <code>ggplot</code> syntax.</p>
 <span class="c1"># Output plots </span>
 <span class="n">plot_grid</span> <span class="o">&lt;-</span> <span class="nf">do.call</span><span class="p">(</span><span class="s">&#34;grid.arrange&#34;</span><span class="p">,</span> <span class="nf">c</span><span class="p">(</span><span class="n">plots</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="m">2</span><span class="p">))</span>
 <span class="nf">grid.draw</span><span class="p">(</span><span class="n">plot_grid</span><span class="p">)</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/unnamed-chunk-5-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-5-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/unnamed-chunk-5-1.png" alt=""><!-- --></p>
 <p>For the sake of curiosity we can also check for any pattern in data
 accurcacy within a specific city. The same could be done with <code>velocity</code>
 to inspect if there’s any area that registered faster movements (morning
@@ -267,21 +349,19 @@ commute, motorbike trips, etc.).</p>
   <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;Data Accuracy (meters) in London&#34;</span><span class="p">)</span>
 
 <span class="n">ldn_acc</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/unnamed-chunk-6-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-6-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/unnamed-chunk-6-1.png" alt=""><!-- --></p>
 <h2 id="handmade-geocoding---time-spent-by-city">Handmade Geocoding - Time spent by city</h2>
 <p>Another question I was interested to answer was how much time did I
 spend in each city I’ve lived in. Sadly the dataset doesn’t have any
 label to mark the city where the data point was collected in. Here I’ve
 evaluated couple strategies to move forward:</p>
 <ul>
-<li>❌️ Use <a href="https://docs.mapbox.com/api/search/"target="_blank">MapBox free geocoding
+<li>❌️ Use <a href="https://docs.mapbox.com/api/search/">MapBox free geocoding
 API</a> is a no-go as it would
 take too long to process 1.3M rows (request/minute are limited).</li>
 <li>❌ Shell out some money for Google Maps API – wasn’t really feeling
 to hit API quotas or spend recklessly.</li>
-<li>✔ Do it in hacky way using <a href="http://www.partow.net/miscellaneous/airportdatabase/#Download"target="_blank">airport
+<li>✔ Do it in hacky way using <a href="http://www.partow.net/miscellaneous/airportdatabase/#Download">airport
 coordinates</a>
 as reference points. The underlying logic assumes that if data was
 collected within a range of <strong>50 km</strong> (arbitrary cutoff value), it
@@ -383,9 +463,7 @@ number of days spent in each city.</p>
        <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;n days&#34;</span><span class="p">)</span>
 
 <span class="nf">grid.arrange</span><span class="p">(</span><span class="n">cities_rank_p</span><span class="p">,</span> <span class="n">city_time_p</span><span class="p">)</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/cities_rank-1.png"><img  src="/images/2020-01-16-location-history/cities_rank-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/cities_rank-1.png" alt=""><!-- --></p>
 <h2 id="total-distance">Total distance</h2>
 <p>In order to retrieve the total distance I’ve covered over the years, it
 is needed to compute the distance between each location and the previous
@@ -413,9 +491,7 @@ values look suspicious and might be originated by some outliers (beyond the scop
   <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;Total distance covered&#34;</span><span class="p">,</span>
        <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;month&#34;</span><span class="p">,</span>
        <span class="n">y</span> <span class="o">=</span> <span class="s">&#34;tot. distance (meters)&#34;</span><span class="p">)</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/dist_year-1.png"><img  src="/images/2020-01-16-location-history/dist_year-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/dist_year-1.png" alt=""><!-- --></p>
 <h2 id="activities">Activities</h2>
 <p>It seems that while collecting data, Google also infers the type of
 activity we’re performing. This predictions can be found in the nested
@@ -441,13 +517,11 @@ Without knowing how this predictions are produced it’s hard to tell whether or
   <span class="nf">theme</span><span class="p">(</span><span class="n">axis.text.x</span> <span class="o">=</span> <span class="nf">element_text</span><span class="p">(</span><span class="n">angle</span> <span class="o">=</span> <span class="m">90</span><span class="p">))</span> <span class="o">+</span>
   <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;Main activities in 2018&#34;</span><span class="p">,</span>
        <span class="n">x</span> <span class="o">=</span> <span class="s">&#34;&#34;</span><span class="p">)</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/unnamed-chunk-8-1.png"><img  src="/images/2020-01-16-location-history/unnamed-chunk-8-1.png"
-        alt/></a><!-- --></p>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/unnamed-chunk-8-1.png" alt=""><!-- --></p>
 <h2 id="extras---animations">Extras - Animations</h2>
 <p>The data spans across several years, with London being the city where
 I’ve generated data for the longest period of time. Through
-<a href="https://github.com/thomasp85/gganimate"target="_blank"><code>gganimate</code></a> we can visualise
+<a href="https://github.com/thomasp85/gganimate"><code>gganimate</code></a> we can visualise
 the evolution of the recorded locations on a map.</p>
 <div class="highlight"><pre class="chroma"><code class="language-r" data-lang="r"><span class="nf">library</span><span class="p">(</span><span class="n">gganimate</span><span class="p">)</span>
 
@@ -469,48 +543,31 @@ the evolution of the recorded locations on a map.</p>
   <span class="nf">labs</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="s">&#34;Locations in London&#34;</span><span class="p">)</span>
 
 <span class="nf">animate</span><span class="p">(</span><span class="n">ldn_anim</span><span class="p">,</span> <span class="n">renderer</span> <span class="o">=</span> <span class="nf">gifski_renderer</span><span class="p">(</span><span class="s">&#34;ldn_2018.gif&#34;</span><span class="p">))</span>
-</code></pre></div><p><a target="_blank" rel="noopener noreferrer" 
-  href="/images/2020-01-16-location-history/ldn_2018.gif"><img  src="/images/2020-01-16-location-history/ldn_2018.gif"
-        alt/></a><!-- --></p>
-</article><section class="article labels"><a class="article category" href=/categories/r/>R</a><a class="article tag" href=/tags/eda/>eda</a></section><section class="article navigation"><p><a class="link" href="/post/gcp-functions/"><span class="li"></span>Hosting simple scripts for cheap on GCP</a></p><p><a class="link" href="/post/experiments/"><span class="li"></span>Experiments</a class="link">
-    </p></section><section class="article discussion"><div id="disqus_thread"></div>
-<script type="application/javascript">
-    var disqus_config = function () {
-    
-    
-    
-    };
-    (function() {
-        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
-            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
-            return;
-        }
-        var d = document, s = d.createElement('script'); s.async = true;
-        s.src = '//' + "anddt-com" + '.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a></section></div><section id="footer" class="footer max-body-width"><div style="display:flex; flex-direction:row; flex-wrap:wrap; justify-content:space-between;">
-<p style="flex-shrink: 0;">2020 Andrea dodet</p>
-<p><a
-    href="https://twitter.com/andodet" target="_blank">Twitter</a><span> // </span><a
-    href="https://github.com/andodet" target="_blank">Github</a><span> // </span><a
-    href="https://linkedin.com/in/andodet" target="_blank">Linkedin</a></p>
-</div>
-</section>
-<script type="application/javascript">
-var doNotTrack = false;
-if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-	ga('create', 'UA-58930119-2', 'auto');
-	
-	ga('send', 'pageview');
-}
-</script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
-</div>
+</code></pre></div><p><img src="/images/2020-01-16-location-history/ldn_2018.gif" alt=""><!-- --></p>
+
+  
+  </div>
+</article>
+
+
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright  &copy; 2021  2020 Andrea dodet 
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+
+  </div>
 </body>
 
+<link rel="stylesheet" href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
 </html>
