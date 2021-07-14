@@ -10,6 +10,8 @@ tags:
     - shiny
 ---
 
+# Caching plots in Shiny
+
   - [Bringing Shiny into production](#bringing-shiny-into-production)
   - [Caching plots](#caching-plots)
   - [Measuring speed benefits](#measuring-speed-benefits)

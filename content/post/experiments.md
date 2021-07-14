@@ -5,6 +5,8 @@ draft: false
 comments: true
 ---
 
+# Experiments
+
 I've always found well-written essays particularly fascinating, to the point that I've decided to experiment on finding
 a method to convey  messages effectively that suits me. In order to feel committed, I purchased a domain on [Google Domains](https://domains.google)
 (took 5 minutes in total and €15) and hosted this basic website. I have always used [R](https://www.r-project.org) at work and I am planning to transition

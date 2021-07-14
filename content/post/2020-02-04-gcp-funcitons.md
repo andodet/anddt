@@ -10,6 +10,8 @@ tags:
     - gcp
 ---
 
+# Hosting simple scripts for cheap on GCP
+
 ## On giving an old Macbook Air some rest
 
 In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted 

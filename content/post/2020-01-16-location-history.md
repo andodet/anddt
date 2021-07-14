@@ -10,6 +10,8 @@ tags:
     - eda
 ---
 
+# Digging into Google location history
+
   - [Setup](#setup)
   - [Data preprocess](#data-preprocess)
   - [How big is the dataset?](#how-big-is-the-dataset)
