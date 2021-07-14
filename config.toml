@@ -1,4 +1,4 @@
-seURL = "https://anddt.com"
+baseURL = "https://anddt.com"
 title = "Andrea Dodet"
 theme = "cactus"
 copyright = "2021 Andrea dodet"
