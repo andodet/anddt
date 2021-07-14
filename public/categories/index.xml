@@ -2,36 +2,36 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Andrea Dodet</title>
-    <link>/categories/</link>
+    <link>https://anddt.com/categories/</link>
     <description>Recent content in Categories on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2021 Andrea dodet</copyright>
-    <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>docker</title>
-      <link>/categories/docker/</link>
+      <link>https://anddt.com/categories/docker/</link>
       <pubDate>Wed, 01 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>/categories/docker/</guid>
+      <guid>https://anddt.com/categories/docker/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Python</title>
-      <link>/categories/python/</link>
+      <link>https://anddt.com/categories/python/</link>
       <pubDate>Wed, 01 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>/categories/python/</guid>
+      <guid>https://anddt.com/categories/python/</guid>
       <description></description>
     </item>
     
     <item>
       <title>R</title>
-      <link>/categories/r/</link>
+      <link>https://anddt.com/categories/r/</link>
       <pubDate>Tue, 03 Mar 2020 00:00:00 +0000</pubDate>
       
-      <guid>/categories/r/</guid>
+      <guid>https://anddt.com/categories/r/</guid>
       <description></description>
     </item>
     

@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>shiny on Andrea Dodet</title>
-    <link>/tags/shiny/</link>
+    <link>https://anddt.com/tags/shiny/</link>
     <description>Recent content in shiny on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2021 Andrea dodet</copyright>
-    <lastBuildDate>Tue, 03 Mar 2020 00:00:00 +0000</lastBuildDate><atom:link href="/tags/shiny/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 03 Mar 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/tags/shiny/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Caching plots in Shiny</title>
-      <link>/post/shiny-plot-caching/</link>
+      <link>https://anddt.com/post/shiny-plot-caching/</link>
       <pubDate>Tue, 03 Mar 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/shiny-plot-caching/</guid>
+      <guid>https://anddt.com/post/shiny-plot-caching/</guid>
       <description>Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
     </item>
     
