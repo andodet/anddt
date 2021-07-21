@@ -14,7 +14,7 @@
   <meta name="robots" content="all,follow">
   <meta name="googlebot" content="index,follow,snippet,archive">
   <meta property="og:title" content="Caching plots in Shiny" />
-<meta property="og:description" content="Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption." />
+<meta property="og:description" content="Caching plots in Shiny  Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://anddt.com/post/shiny-plot-caching/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2020-03-03T00:00:00+00:00" />
@@ -23,14 +23,14 @@
 
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Caching plots in Shiny"/>
-<meta name="twitter:description" content="Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption."/>
+<meta name="twitter:description" content="Caching plots in Shiny  Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption."/>
 
   
   
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.7c754dee4bfc873743b12288cf94eadcfd3bee1f2cff5a106753b8047879ac5195c8d8ad90f6d73f12e9c841696c51a0abdeae8394e3eb3079f310f418ddf9ec.css">
 
   
   
@@ -79,7 +79,8 @@
 
   <div class="content" itemprop="articleBody">
   
-    <ul>
+    <h1 id="caching-plots-in-shiny">Caching plots in Shiny</h1>
+<ul>
 <li><a href="#bringing-shiny-into-production">Bringing Shiny into production</a></li>
 <li><a href="#caching-plots">Caching plots</a></li>
 <li><a href="#measuring-speed-benefits">Measuring speed benefits</a></li>
@@ -124,74 +125,74 @@ Winston Chang for exhaustive documentation on the several nuances of
 caching plots in Shiny. For clarity’s sake, the following <a href="https://gist.github.com/andodet/fe390ae45127a80e3e526e63fc3f11bf">example
 app</a>
 will be used as a test throughout this post:</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#00f">library</span>(shiny)
-<span style="color:#00f">library</span>(dplyr)
-<span style="color:#00f">library</span>(ggplot2)
-<span style="color:#00f">library</span>(R6)
-<span style="color:#00f">library</span>(redux)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#50fa7b">library</span>(shiny)
+<span style="color:#50fa7b">library</span>(dplyr)
+<span style="color:#50fa7b">library</span>(ggplot2)
+<span style="color:#50fa7b">library</span>(R6)
+<span style="color:#50fa7b">library</span>(redux)
 
-ui <span style="color:#666">&lt;-</span> <span style="color:#00f">fluidPage</span>(<span style="color:#00f">titlePanel</span>(<span style="color:#ba2121">&#34;Plot Caching Test&#34;</span>),
+ui <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">fluidPage</span>(<span style="color:#50fa7b">titlePanel</span>(<span style="color:#f1fa8c">&#34;Plot Caching Test&#34;</span>),
                 
-                <span style="color:#00f">sidebarLayout</span>(<span style="color:#00f">sidebarPanel</span>(
-                  <span style="color:#00f">selectInput</span>(<span style="color:#ba2121">&#34;number&#34;</span>, choices <span style="color:#666">=</span> <span style="color:#00f">seq</span>(<span style="color:#666">80000</span>, <span style="color:#666">100000</span>, by <span style="color:#666">=</span> <span style="color:#666">10000</span>),
-                              label <span style="color:#666">=</span> <span style="color:#ba2121">&#34;Number of points&#34;</span>, selected <span style="color:#666">=</span> <span style="color:#666">5000</span>)
+                <span style="color:#50fa7b">sidebarLayout</span>(<span style="color:#50fa7b">sidebarPanel</span>(
+                  <span style="color:#50fa7b">selectInput</span>(<span style="color:#f1fa8c">&#34;number&#34;</span>, choices <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">seq</span>(<span style="color:#bd93f9">80000</span>, <span style="color:#bd93f9">100000</span>, by <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">10000</span>),
+                              label <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;Number of points&#34;</span>, selected <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">5000</span>)
                 ),
-                <span style="color:#00f">mainPanel</span>(<span style="color:#00f">plotOutput</span>(<span style="color:#ba2121">&#34;point_plot&#34;</span>))))
+                <span style="color:#50fa7b">mainPanel</span>(<span style="color:#50fa7b">plotOutput</span>(<span style="color:#f1fa8c">&#34;point_plot&#34;</span>))))
 
 
-server <span style="color:#666">&lt;-</span> <span style="color:#00f">function</span>(input, output) {
+server <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">function</span>(input, output) {
   
-  data <span style="color:#666">&lt;-</span> <span style="color:#00f">reactive</span>({
-    <span style="color:#00f">data.frame</span>(x <span style="color:#666">=</span> <span style="color:#00f">rnorm</span>(input<span style="color:#666">$</span>number),
-               y <span style="color:#666">=</span> <span style="color:#00f">rnorm</span>(input<span style="color:#666">$</span>number))
+  data <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">reactive</span>({
+    <span style="color:#50fa7b">data.frame</span>(x <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">rnorm</span>(input<span style="color:#ff79c6">$</span>number),
+               y <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">rnorm</span>(input<span style="color:#ff79c6">$</span>number))
   })
   
-  output<span style="color:#666">$</span>point_plot <span style="color:#666">&lt;-</span> <span style="color:#00f">renderCachedPlot</span>({
-    <span style="color:#00f">ggplot</span>(<span style="color:#00f">data</span>(), <span style="color:#00f">aes</span>(x, y)) <span style="color:#666">+</span>
-      <span style="color:#00f">geom_point</span>(alpha <span style="color:#666">=</span> <span style="color:#666">0.8</span>) <span style="color:#666">+</span>
-      <span style="color:#00f">labs</span>(title <span style="color:#666">=</span> <span style="color:#ba2121">&#34;Random scatterplot&#34;</span>)
+  output<span style="color:#ff79c6">$</span>point_plot <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">renderCachedPlot</span>({
+    <span style="color:#50fa7b">ggplot</span>(<span style="color:#50fa7b">data</span>(), <span style="color:#50fa7b">aes</span>(x, y)) <span style="color:#ff79c6">+</span>
+      <span style="color:#50fa7b">geom_point</span>(alpha <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0.8</span>) <span style="color:#ff79c6">+</span>
+      <span style="color:#50fa7b">labs</span>(title <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;Random scatterplot&#34;</span>)
   },
-  cacheKeyExpr <span style="color:#666">=</span> { <span style="color:#00f">list</span>(input<span style="color:#666">$</span>number) }
+  cacheKeyExpr <span style="color:#ff79c6">=</span> { <span style="color:#50fa7b">list</span>(input<span style="color:#ff79c6">$</span>number) }
   )
   
   
-  <span style="color:#408080;font-style:italic"># Set up redis cache object</span>
-  RedisCache <span style="color:#666">&lt;-</span> <span style="color:#00f">R6Class</span>(
-    <span style="color:#ba2121">&#34;RedisCache&#34;</span>,
-    public <span style="color:#666">=</span> <span style="color:#00f">list</span>(
-      initialize <span style="color:#666">=</span> <span style="color:#00f">function</span>(<span style="color:#008000;font-weight:bold">...</span>, namespace <span style="color:#666">=</span> <span style="color:#008000;font-weight:bold">NULL</span>) {
-        private<span style="color:#666">$</span>r <span style="color:#666">&lt;-</span> redux<span style="color:#666">::</span><span style="color:#00f">hiredis</span>(host <span style="color:#666">=</span> <span style="color:#ba2121">&#39;127.0.0.1&#39;</span>, port <span style="color:#666">=</span> <span style="color:#666">6379</span>)
+  <span style="color:#6272a4"># Set up redis cache object</span>
+  RedisCache <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">R6Class</span>(
+    <span style="color:#f1fa8c">&#34;RedisCache&#34;</span>,
+    public <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">list</span>(
+      initialize <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">function</span>(<span style="color:#ff79c6">...</span>, namespace <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">NULL</span>) {
+        private<span style="color:#ff79c6">$</span>r <span style="color:#ff79c6">&lt;-</span> redux<span style="color:#ff79c6">::</span><span style="color:#50fa7b">hiredis</span>(host <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#39;127.0.0.1&#39;</span>, port <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">6379</span>)
         
-        <span style="color:#408080;font-style:italic"># Configure 20mb cache</span>
-        private<span style="color:#666">$</span>r<span style="color:#666">$</span><span style="color:#00f">CONFIG_SET</span>(<span style="color:#ba2121">&#34;maxmemory&#34;</span>, <span style="color:#ba2121">&#34;20mb&#34;</span>)
-        private<span style="color:#666">$</span>r<span style="color:#666">$</span><span style="color:#00f">CONFIG_SET</span>(<span style="color:#ba2121">&#34;maxmemory-policy&#34;</span>, <span style="color:#ba2121">&#34;allkeys-lru&#34;</span>)
-        private<span style="color:#666">$</span>namespace <span style="color:#666">&lt;-</span> namespace
+        <span style="color:#6272a4"># Configure 20mb cache</span>
+        private<span style="color:#ff79c6">$</span>r<span style="color:#ff79c6">$</span><span style="color:#50fa7b">CONFIG_SET</span>(<span style="color:#f1fa8c">&#34;maxmemory&#34;</span>, <span style="color:#f1fa8c">&#34;20mb&#34;</span>)
+        private<span style="color:#ff79c6">$</span>r<span style="color:#ff79c6">$</span><span style="color:#50fa7b">CONFIG_SET</span>(<span style="color:#f1fa8c">&#34;maxmemory-policy&#34;</span>, <span style="color:#f1fa8c">&#34;allkeys-lru&#34;</span>)
+        private<span style="color:#ff79c6">$</span>namespace <span style="color:#ff79c6">&lt;-</span> namespace
       },
       
-      get <span style="color:#666">=</span> <span style="color:#00f">function</span>(key) {
-        key <span style="color:#666">&lt;-</span> <span style="color:#00f">paste0</span>(private<span style="color:#666">$</span>namespace, <span style="color:#ba2121">&#34;-&#34;</span>, key)
-        s_value <span style="color:#666">&lt;-</span> private<span style="color:#666">$</span>r<span style="color:#666">$</span><span style="color:#00f">GET</span>(key)
-        <span style="color:#00f">if </span>(<span style="color:#00f">is.null</span>(s_value)) {
-          <span style="color:#00f">return</span>(<span style="color:#00f">key_missing</span>())
+      get <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">function</span>(key) {
+        key <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">paste0</span>(private<span style="color:#ff79c6">$</span>namespace, <span style="color:#f1fa8c">&#34;-&#34;</span>, key)
+        s_value <span style="color:#ff79c6">&lt;-</span> private<span style="color:#ff79c6">$</span>r<span style="color:#ff79c6">$</span><span style="color:#50fa7b">GET</span>(key)
+        <span style="color:#50fa7b">if </span>(<span style="color:#50fa7b">is.null</span>(s_value)) {
+          <span style="color:#50fa7b">return</span>(<span style="color:#50fa7b">key_missing</span>())
         }
-        <span style="color:#00f">unserialize</span>(s_value)
+        <span style="color:#50fa7b">unserialize</span>(s_value)
       },
       
-      set <span style="color:#666">=</span> <span style="color:#00f">function</span>(key, value) {
-        key <span style="color:#666">&lt;-</span> <span style="color:#00f">paste0</span>(private<span style="color:#666">$</span>namespace, <span style="color:#ba2121">&#34;-&#34;</span>, key)
-        s_value <span style="color:#666">&lt;-</span> <span style="color:#00f">serialize</span>(value, <span style="color:#008000;font-weight:bold">NULL</span>)
-        private<span style="color:#666">$</span>r<span style="color:#666">$</span><span style="color:#00f">SET</span>(key, s_value)
+      set <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">function</span>(key, value) {
+        key <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">paste0</span>(private<span style="color:#ff79c6">$</span>namespace, <span style="color:#f1fa8c">&#34;-&#34;</span>, key)
+        s_value <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">serialize</span>(value, <span style="color:#ff79c6">NULL</span>)
+        private<span style="color:#ff79c6">$</span>r<span style="color:#ff79c6">$</span><span style="color:#50fa7b">SET</span>(key, s_value)
       }
     ),
-    private <span style="color:#666">=</span> <span style="color:#00f">list</span>(r <span style="color:#666">=</span> <span style="color:#008000;font-weight:bold">NULL</span>,
-                   namespace <span style="color:#666">=</span> <span style="color:#008000;font-weight:bold">NULL</span>)
+    private <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">list</span>(r <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">NULL</span>,
+                   namespace <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">NULL</span>)
   )
   
-  <span style="color:#00f">shinyOptions</span>(cache <span style="color:#666">=</span> RedisCache<span style="color:#666">$</span><span style="color:#00f">new</span>(namespace <span style="color:#666">=</span> <span style="color:#ba2121">&#34;example_app&#34;</span>))
+  <span style="color:#50fa7b">shinyOptions</span>(cache <span style="color:#ff79c6">=</span> RedisCache<span style="color:#ff79c6">$</span><span style="color:#50fa7b">new</span>(namespace <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;example_app&#34;</span>))
   
 }
 
-<span style="color:#00f">shinyApp</span>(ui, server)
+<span style="color:#50fa7b">shinyApp</span>(ui, server)
 </code></pre></div><p>From the code above, two main things should be noted:</p>
 <ul>
 <li>The declaration of a <code>RedisCache</code> object, pointing to the IP address
@@ -202,7 +203,7 @@ will invalidate the cache, forcing the plot to be redrawn.</li>
 <p>Below a screenshot of the resulting example:</p>
 <p><img src="/images/2020-03-03-caching-shiny-plots/toy_app.png" alt=""></p>
 <p>In this example, a Redis server will be spun up through Docker:</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker run -d -p 6379:6379 --name cache redis
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker run -d -p 6379:6379 --name cache redis
 </code></pre></div><p>It is possible to verify the server has come live correctly by checking
 <code>docker ps</code> output.</p>
 <h2 id="measuring-speed-benefits">Measuring speed benefits</h2>
@@ -245,20 +246,20 @@ folder containing logs for each session will be created. <code>shinyloadtest</co
 already has builtin functions to import, parse and compute relevant
 metrics from these log files. <em>Total session time</em> will be the main
 metric against which performances will be assessed.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#00f">library</span>(shinyloadtest)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#50fa7b">library</span>(shinyloadtest)
 
-<span style="color:#408080;font-style:italic"># Import laodtest runs</span>
-cached_200 <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(<span style="color:#ba2121">&#34;200_users_cached/&#34;</span>)
-cached_100 <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(<span style="color:#ba2121">&#34;100_users_cached/&#34;</span>)
-cached_50 <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(<span style="color:#ba2121">&#34;50_users_cached/&#34;</span>)
-cached_25 <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(<span style="color:#ba2121">&#34;25_users_cached/&#34;</span>)
-uncached_5 <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(<span style="color:#ba2121">&#34;5_users_uncached/&#34;</span>)
+<span style="color:#6272a4"># Import laodtest runs</span>
+cached_200 <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(<span style="color:#f1fa8c">&#34;200_users_cached/&#34;</span>)
+cached_100 <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(<span style="color:#f1fa8c">&#34;100_users_cached/&#34;</span>)
+cached_50 <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(<span style="color:#f1fa8c">&#34;50_users_cached/&#34;</span>)
+cached_25 <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(<span style="color:#f1fa8c">&#34;25_users_cached/&#34;</span>)
+uncached_5 <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(<span style="color:#f1fa8c">&#34;5_users_uncached/&#34;</span>)
 
-<span style="color:#408080;font-style:italic"># Merge dataframes</span>
-df <span style="color:#666">&lt;-</span> <span style="color:#00f">rbind</span>(cached_200, cached_100, cached_50,
+<span style="color:#6272a4"># Merge dataframes</span>
+df <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">rbind</span>(cached_200, cached_100, cached_50,
             cached_25, uncached_5)
-</code></pre></div><div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#00f">library</span>(dplyr)
-<span style="color:#00f">glimpse</span>(cached_100)
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#50fa7b">library</span>(dplyr)
+<span style="color:#50fa7b">glimpse</span>(cached_100)
 </code></pre></div><pre><code>## Observations: 11,886
 ## Variables: 13
 ## $ run               &lt;ord&gt; 100_users_cached, 100_users_cached, 100_users_cache…
@@ -275,24 +276,24 @@ df <span style="color:#666">&lt;-</span> <span style="color:#00f">rbind</span>(c
 ## $ label             &lt;ord&gt; Event 1) Get: Homepage, Event 2) Start Session, Eve…
 ## $ json              &lt;list&gt; [[&quot;REQ_HOME&quot;, 2020-03-01 18:42:58, 2020-03-01 18:4…
 </code></pre>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#00f">library</span>(ggplot2)
-<span style="color:#00f">library</span>(scales)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#50fa7b">library</span>(ggplot2)
+<span style="color:#50fa7b">library</span>(scales)
 
-<span style="color:#408080;font-style:italic"># Plot session times</span>
-df <span style="color:#666">%&gt;%</span>
-  <span style="color:#00f">group_by</span>(run, session_id) <span style="color:#666">%&gt;%</span> 
-  <span style="color:#00f">summarise</span>(tot_time <span style="color:#666">=</span> <span style="color:#00f">sum</span>(time)) <span style="color:#666">%&gt;%</span> 
-  <span style="color:#00f">ggplot</span>(<span style="color:#00f">aes</span>(run, tot_time, fill <span style="color:#666">=</span> run)) <span style="color:#666">+</span>
-  <span style="color:#00f">geom_boxplot</span>() <span style="color:#666">+</span>
-  <span style="color:#00f">scale_y_continuous</span>(trans <span style="color:#666">=</span> <span style="color:#ba2121">&#34;log10&#34;</span>, 
-                     breaks <span style="color:#666">=</span> <span style="color:#00f">trans_breaks</span>(<span style="color:#ba2121">&#34;log10&#34;</span>, <span style="color:#00f">function</span>(x) <span style="color:#666">10</span>^x),
-                     labels <span style="color:#666">=</span> <span style="color:#00f">function</span>(x)<span style="color:#00f">round</span>(x,<span style="color:#666">2</span>)) <span style="color:#666">+</span>
-  <span style="color:#00f">scale_x_discrete</span>(labels <span style="color:#666">=</span> <span style="color:#00f">c</span>(<span style="color:#ba2121">&#34;25 Users\n Cached&#34;</span>, <span style="color:#ba2121">&#34;50 Users\n Cached&#34;</span>,
-                              <span style="color:#ba2121">&#34;100 Users\n Cached&#34;</span>, <span style="color:#ba2121">&#34;200 Users\n Cached&#34;</span>,
-                              <span style="color:#ba2121">&#34;5 Users\n No Cache&#34;</span>)) <span style="color:#666">+</span>
-  <span style="color:#00f">theme</span>(legend.position <span style="color:#666">=</span> <span style="color:#ba2121">&#34;none&#34;</span>) <span style="color:#666">+</span>
-  <span style="color:#00f">labs</span>(y <span style="color:#666">=</span> <span style="color:#ba2121">&#34;Session time (secs)&#34;</span>,
-       x <span style="color:#666">=</span> <span style="color:#008000;font-weight:bold">NULL</span>)
+<span style="color:#6272a4"># Plot session times</span>
+df <span style="color:#ff79c6">%&gt;%</span>
+  <span style="color:#50fa7b">group_by</span>(run, session_id) <span style="color:#ff79c6">%&gt;%</span> 
+  <span style="color:#50fa7b">summarise</span>(tot_time <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">sum</span>(time)) <span style="color:#ff79c6">%&gt;%</span> 
+  <span style="color:#50fa7b">ggplot</span>(<span style="color:#50fa7b">aes</span>(run, tot_time, fill <span style="color:#ff79c6">=</span> run)) <span style="color:#ff79c6">+</span>
+  <span style="color:#50fa7b">geom_boxplot</span>() <span style="color:#ff79c6">+</span>
+  <span style="color:#50fa7b">scale_y_continuous</span>(trans <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;log10&#34;</span>, 
+                     breaks <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">trans_breaks</span>(<span style="color:#f1fa8c">&#34;log10&#34;</span>, <span style="color:#50fa7b">function</span>(x) <span style="color:#bd93f9">10</span>^x),
+                     labels <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">function</span>(x)<span style="color:#50fa7b">round</span>(x,<span style="color:#bd93f9">2</span>)) <span style="color:#ff79c6">+</span>
+  <span style="color:#50fa7b">scale_x_discrete</span>(labels <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">c</span>(<span style="color:#f1fa8c">&#34;25 Users\n Cached&#34;</span>, <span style="color:#f1fa8c">&#34;50 Users\n Cached&#34;</span>,
+                              <span style="color:#f1fa8c">&#34;100 Users\n Cached&#34;</span>, <span style="color:#f1fa8c">&#34;200 Users\n Cached&#34;</span>,
+                              <span style="color:#f1fa8c">&#34;5 Users\n No Cache&#34;</span>)) <span style="color:#ff79c6">+</span>
+  <span style="color:#50fa7b">theme</span>(legend.position <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;none&#34;</span>) <span style="color:#ff79c6">+</span>
+  <span style="color:#50fa7b">labs</span>(y <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;Session time (secs)&#34;</span>,
+       x <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">NULL</span>)
 </code></pre></div><p><img src="/images/2020-03-03-caching-shiny-plots/sess_time-1.png" alt=""><!-- raw HTML omitted --></p>
 <p>As it can be easily noticed, the app supports up to 100 concurrent users
 without missing a beat (completely acceptable <em>total session times</em>). At
@@ -318,18 +319,18 @@ performances.</p>
 <p>In order to dig deeper on the test runs, <code>shinyloadtest</code> offers an
 extensive html report. The report can be generated after importing and
 crunching all the test run files:</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#00f">library</span>(shinyloadtest)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#50fa7b">library</span>(shinyloadtest)
 
-df <span style="color:#666">&lt;-</span> <span style="color:#00f">load_runs</span>(
-  `5_uncached` <span style="color:#666">=</span> <span style="color:#ba2121">&#34;5_users_uncached/&#34;</span>,
-  `25_cached` <span style="color:#666">=</span> <span style="color:#ba2121">&#34;25_users_cached/&#34;</span>,
-  `50_cached` <span style="color:#666">=</span> <span style="color:#ba2121">&#34;50_users_cached/&#34;</span>,
-  `100_cached` <span style="color:#666">=</span> <span style="color:#ba2121">&#34;100_users_cached/&#34;</span>,
-  `200_cached` <span style="color:#666">=</span> <span style="color:#ba2121">&#34;200_users_cached/&#34;</span>
+df <span style="color:#ff79c6">&lt;-</span> <span style="color:#50fa7b">load_runs</span>(
+  `5_uncached` <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;5_users_uncached/&#34;</span>,
+  `25_cached` <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;25_users_cached/&#34;</span>,
+  `50_cached` <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;50_users_cached/&#34;</span>,
+  `100_cached` <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;100_users_cached/&#34;</span>,
+  `200_cached` <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;200_users_cached/&#34;</span>
 )
 
-<span style="color:#408080;font-style:italic"># Make report</span>
-<span style="color:#00f">shinyloadtest_report</span>(df)
+<span style="color:#6272a4"># Make report</span>
+<span style="color:#50fa7b">shinyloadtest_report</span>(df)
 </code></pre></div><h2 id="references">References</h2>
 <ul>
 <li><a href=""><code>shinyloadtest</code></a>: load testing suite for Shiny applications</li>

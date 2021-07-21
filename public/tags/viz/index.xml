@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>-viz on Andrea Dodet</title>
+    <link>https://anddt.com/tags/viz/</link>
+    <description>Recent content in -viz on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <copyright>2021 Andrea dodet</copyright>
+    <lastBuildDate>Sat, 10 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/tags/viz/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Playing around with streamlit dashboards</title>
+      <link>https://anddt.com/post/streamlit-git-viz/</link>
+      <pubDate>Sat, 10 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://anddt.com/post/streamlit-git-viz/</guid>
+      <description>Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying  Streamlit Share Google App Engine   Closing remarks References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:</description>
+    </item>
+    
+  </channel>
+</rss>
