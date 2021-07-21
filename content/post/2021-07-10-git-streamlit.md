@@ -39,6 +39,8 @@ too much time wrestling with css code over a weekend.
 - Should allow users to explore any repo they can think of
 - Should allow to filter commits by date
 - Should allow users to filter commits by contributor
+
+The final dashboard is publicly available [here](https://share.streamlit.io/andodet/git-overview/app/dashboard.py)
  
 ## Exploring a few tools
 
