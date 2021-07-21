@@ -14,7 +14,7 @@
   <meta name="robots" content="all,follow">
   <meta name="googlebot" content="index,follow,snippet,archive">
   <meta property="og:title" content="Hosting simple scripts for cheap on GCP" />
-<meta property="og:description" content="On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+<meta property="og:description" content="Hosting simple scripts for cheap on GCP On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
 I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://anddt.com/post/gcp-functions/" /><meta property="article:section" content="post" />
@@ -24,7 +24,7 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
 
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Hosting simple scripts for cheap on GCP"/>
-<meta name="twitter:description" content="On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+<meta name="twitter:description" content="Hosting simple scripts for cheap on GCP On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
 I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf."/>
 
   
@@ -32,7 +32,7 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.7c754dee4bfc873743b12288cf94eadcfd3bee1f2cff5a106753b8047879ac5195c8d8ad90f6d73f12e9c841696c51a0abdeae8394e3eb3079f310f418ddf9ec.css">
 
   
   
@@ -81,7 +81,8 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
 
   <div class="content" itemprop="articleBody">
   
-    <h2 id="on-giving-an-old-macbook-air-some-rest">On giving an old Macbook Air some rest</h2>
+    <h1 id="hosting-simple-scripts-for-cheap-on-gcp">Hosting simple scripts for cheap on GCP</h1>
+<h2 id="on-giving-an-old-macbook-air-some-rest">On giving an old Macbook Air some rest</h2>
 <p>In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted
 on <a href="https://stackoverflow.com">stackoverflow</a> on a given day. To do this, I&rsquo;ve written
 a small <a href="https://github.com/andodet/stack-jobs-parser">Python utility</a> that parses their
@@ -134,10 +135,10 @@ usage limits (at the time of writing):</p>
 <p>In order to successfully host my function to the cloud, my original script needed couple adjustments.
 First, as the function will be invoked by a <code>GET</code> request, I had to add <code>request</code> as an argument of
 my main function in order to make it callable.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#008000;font-weight:bold">def</span> <span style="color:#00f">main</span>(request):
-    <span style="color:#408080;font-style:italic"># Do stuff</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#ff79c6">def</span> <span style="color:#50fa7b">main</span>(request):
+    <span style="color:#6272a4"># Do stuff</span>
 
-<span style="color:#008000;font-weight:bold">if</span> __name__ <span style="color:#666">==</span>  <span style="color:#ba2121">&#34;__main__&#34;</span>:
+<span style="color:#ff79c6">if</span> __name__ <span style="color:#ff79c6">==</span>  <span style="color:#f1fa8c">&#34;__main__&#34;</span>:
     main()
 </code></pre></div><p>Secondly, <a href="https://gspread.readthedocs.io/en/latest/"><code>gspread</code></a> (Python module to interact with
 Google Sheets) requires a json file with API auth keys for authentication. I have put that file in a storage bucket and
@@ -175,30 +176,30 @@ doesn&rsquo;t require to implement auth flows in the function.</li>
 will be killed if it exceeds timeout (default is 30s). It is worth pointing out that Cloud Functions have an
 <strong>execution time limit of 9 minutes</strong>.</li>
 </ul>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions deploy so-parse <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --memory 128MB <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --runtime python37 <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --entry-point main <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --source https://source.developers.google.com/projects/your-project/repos/repo-name/path/to/function <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --timeout <span style="color:#666">300</span> <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --set-env-vars <span style="color:#19177c">JOB_SHEET_ID</span><span style="color:#666">=</span><span style="color:#ba2121">&#34;your-ghseet-id&#34;</span> <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --set-env-vars <span style="color:#19177c">SHEET_NAME</span><span style="color:#666">=</span><span style="color:#ba2121">&#34;worksheet-name&#34;</span> <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --set-env-vars <span style="color:#19177c">GOOGLE_AUTH_KEY</span><span style="color:#666">=</span><span style="color:#ba2121">&#34;json-file-with-google-auth-keys.json&#34;</span> <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --trigger-http <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --no-allow-unauthenticated
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions deploy so-parse <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --memory 128MB <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --runtime python37 <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --entry-point main <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --source https://source.developers.google.com/projects/your-project/repos/repo-name/path/to/function <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --timeout <span style="color:#bd93f9">300</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --set-env-vars <span style="color:#8be9fd;font-style:italic">JOB_SHEET_ID</span><span style="color:#ff79c6">=</span><span style="color:#f1fa8c">&#34;your-ghseet-id&#34;</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --set-env-vars <span style="color:#8be9fd;font-style:italic">SHEET_NAME</span><span style="color:#ff79c6">=</span><span style="color:#f1fa8c">&#34;worksheet-name&#34;</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --set-env-vars <span style="color:#8be9fd;font-style:italic">GOOGLE_AUTH_KEY</span><span style="color:#ff79c6">=</span><span style="color:#f1fa8c">&#34;json-file-with-google-auth-keys.json&#34;</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --trigger-http <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --no-allow-unauthenticated
 </code></pre></div><p>In order to automatically run the function at set intervals, it is possible to rely on <a href="https://cloud.google.com/scheduler/">Cloud Scheduler</a>.
 The main logic is to set up a cron job that will fire a <code>GET</code> request to the function&rsquo;s trigger url
 at a given interval.<br>
 Before setting the cron job up we need to create a service account and make sure it has the right
 permissions to invoke Cloud Functions.</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud iam service-accounts create cloud-scheduler
-</code></pre></div><div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions add-iam-policy-binding <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --member<span style="color:#666">=</span>serviceAccount:cloud-scheduler@your-project.iam.gserviceaccount.com <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --role<span style="color:#666">=</span>roles/cloudfunctions.invoker so-parse
-</code></pre></div><div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud scheduler <span style="color:#008000">jobs</span> create http stack-scrape <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --schedule<span style="color:#666">=</span><span style="color:#ba2121">&#34;*/3 * * * *&#34;</span> <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --uri<span style="color:#666">=</span>https://your-func-trigger-url <span style="color:#b62;font-weight:bold">\
-</span><span style="color:#b62;font-weight:bold"></span>    --oidc-service-account-email<span style="color:#666">=</span>cloud-scheduler@your-project.iam.gserviceaccount.com 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud iam service-accounts create cloud-scheduler
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions add-iam-policy-binding <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --member<span style="color:#ff79c6">=</span>serviceAccount:cloud-scheduler@your-project.iam.gserviceaccount.com <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --role<span style="color:#ff79c6">=</span>roles/cloudfunctions.invoker so-parse
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud scheduler <span style="color:#8be9fd;font-style:italic">jobs</span> create http stack-scrape <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --schedule<span style="color:#ff79c6">=</span><span style="color:#f1fa8c">&#34;*/3 * * * *&#34;</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --uri<span style="color:#ff79c6">=</span>https://your-func-trigger-url <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    --oidc-service-account-email<span style="color:#ff79c6">=</span>cloud-scheduler@your-project.iam.gserviceaccount.com 
 </code></pre></div><p>To confirm that everything went according to plan I quickly peeked a the logs after waiting for
 a few minutes (to be sure the function actually had the time to run at least once).</p>
 <!-- raw HTML omitted -->

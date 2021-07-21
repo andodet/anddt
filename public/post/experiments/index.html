@@ -14,7 +14,7 @@
   <meta name="robots" content="all,follow">
   <meta name="googlebot" content="index,follow,snippet,archive">
   <meta property="og:title" content="Experiments" />
-<meta property="og:description" content="I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path." />
+<meta property="og:description" content="Experiments I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://anddt.com/post/experiments/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2020-01-08T20:36:36+01:00" />
@@ -23,14 +23,14 @@
 
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Experiments"/>
-<meta name="twitter:description" content="I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path."/>
+<meta name="twitter:description" content="Experiments I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path."/>
 
   
   
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.7c754dee4bfc873743b12288cf94eadcfd3bee1f2cff5a106753b8047879ac5195c8d8ad90f6d73f12e9c841696c51a0abdeae8394e3eb3079f310f418ddf9ec.css">
 
   
   
@@ -79,7 +79,8 @@
 
   <div class="content" itemprop="articleBody">
   
-    <p>I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding
+    <h1 id="experiments">Experiments</h1>
+<p>I&rsquo;ve always found well-written essays particularly fascinating, to the point that I&rsquo;ve decided to experiment on finding
 a method to convey  messages effectively that suits me. In order to feel committed, I purchased a domain on <a href="https://domains.google">Google Domains</a>
 (took 5 minutes in total and €15) and hosted this basic website. I have always used <a href="https://www.r-project.org">R</a> at work and I am planning to transition
 from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.
@@ -95,24 +96,24 @@ Landing on Hugo as a blogging platform has been somewhat of a natural decision:<
 Below the steps I&rsquo;ve followed to install hugo on my Linux machine (I went for the &lsquo;longish&rsquo; route as <code>sudo apt-get install hugo</code> was
 installing an old version which gave problem with the theme I chose). All the steps listed below are explained at length on <a href="https://gohugo.io/documentation/">Hugo docs</a>.</p>
 <p>To follow the steps above you need to download the right tarfile from your system from Hugo&rsquo;s <a href="https://github.com/gohugoio/hugo/releases">github repo</a></p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#408080;font-style:italic"># Move downloaded tarball and extract it </span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#6272a4"># Move downloaded tarball and extract it </span>
 sudo mv ~/Donwloads/hugo_0.62.2_Linux-64bit.tar.gz /usr/local/bin/
 sudo tar -xvzf /usr/local/bin/hugo_0.62.2_Linux-64bit.tar.gz
 
-<span style="color:#408080;font-style:italic"># Check everything has worked</span>
+<span style="color:#6272a4"># Check everything has worked</span>
 ➜  ~ hugo version
 Hugo Static Site Generator v0.62.2-83E50184 linux/amd64 BuildDate: 2020-01-05T18:51:38Z
 </code></pre></div><p>Now we can initialise our website and choose a theme (I went for <a href="https://github.com/cntrump/hugo-notepadium">hugo-notepadium</a> for its simplicity):</p>
-<div class="highlight"><pre style=";-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#408080;font-style:italic"># Create new website</span>
-<span style="color:#008000">cd</span> ~/code
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#6272a4"># Create new website</span>
+<span style="color:#8be9fd;font-style:italic">cd</span> ~/code
 hugo new site your_website_name
 
-<span style="color:#408080;font-style:italic"># Add hugo theme</span>
-<span style="color:#008000">cd</span> your_website_name
+<span style="color:#6272a4"># Add hugo theme</span>
+<span style="color:#8be9fd;font-style:italic">cd</span> your_website_name
 git init
 git submodule add https://github.com/cntrump/hugo-notepadium themes/hugo-notepadium
 
-<span style="color:#408080;font-style:italic"># Push your website to a github repo</span>
+<span style="color:#6272a4"># Push your website to a github repo</span>
 git remote add origin https://github.com/your-username/your-repo.git
 git push -u origin master
 </code></pre></div><p>We can check everything has worked properly by launching our website locally with <code>hugo server</code>.<br>

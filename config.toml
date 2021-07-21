@@ -18,7 +18,7 @@ disqusShortname = "anddt-com"
 googleAnalytics = "UA-58930119-2"
 
 [params]
-colortheme = "white"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
+colortheme = "light"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
 logo = "logo.png"  # if you have a logo png
 description = "Jotting down things I'd like to understand"
 showAllPostsOnHomePage = true
@@ -52,6 +52,6 @@ lineNoStart = 1
 lineNos = false
 lineNumbersInTable = true
 noClasses = true
-style = "pygments"
+style = "dracula"
 tabWidth = 4
 

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title> Playing around with streamlit dashboards | Andrea Dodet</title>
+  <link rel = 'canonical' href = 'https://anddt.com/post/streamlit-git-viz/'>
+  <meta name="description" content="Jotting down things I&#39;d like to understand">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="all,follow">
+  <meta name="googlebot" content="index,follow,snippet,archive">
+  <meta property="og:title" content="Playing around with streamlit dashboards" />
+<meta property="og:description" content="Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying  Streamlit Share Google App Engine   Closing remarks References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://anddt.com/post/streamlit-git-viz/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2021-07-10T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-07-10T00:00:00+00:00" />
+
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Playing around with streamlit dashboards"/>
+<meta name="twitter:description" content="Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying  Streamlit Share Google App Engine   Closing remarks References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:"/>
+
+  
+  
+    
+  
+  
+  <link rel="stylesheet" href="https://anddt.com/css/styles.7c754dee4bfc873743b12288cf94eadcfd3bee1f2cff5a106753b8047879ac5195c8d8ad90f6d73f12e9c841696c51a0abdeae8394e3eb3079f310f418ddf9ec.css">
+
+  
+  
+  
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  
+
+  
+<link rel="icon" type="image/png" href="https://anddt.com/images/favicon.ico" />
+
+  
+  
+  
+  
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+  <div class="content index py4">
+
+    <header id="header">
+  <a href="https://anddt.com">
+  
+    <div id="logo" style="background-image: url(https://anddt.com/logo.png)"></div>
+  
+  <div id="title">
+    <h1>Andrea Dodet</h1>
+  </div>
+  </a>
+  <div id="nav">
+    <ul>
+      <li class="icon">
+        <a href="#" aria-label="Menu"><i class="fas fa-bars fa-2x" aria-hidden="true"></i></a>
+      </li>
+      
+    </ul>
+  </div>
+</header>
+
+
+
+    
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <div class="content" itemprop="articleBody">
+  
+    <h1 id="playing-around-with-streamlit-dashboards">Playing around with streamlit dashboards</h1>
+<ul>
+<li><a href="#intro">Intro</a></li>
+<li><a href="#exploring-a-few-tools">Exploring a few tools</a></li>
+<li><a href="#project-structure">Project structure</a></li>
+<li><a href="#overview-of--dplyr--activity">Overview of <code>dplyr</code> activity</a></li>
+<li><a href="#deploying">Deploying</a>
+<ul>
+<li><a href="#streamlit-share">Streamlit Share</a></li>
+<li><a href="#google-app-engine">Google App Engine</a></li>
+</ul>
+</li>
+<li><a href="#closing-remarks">Closing remarks</a></li>
+<li><a href="#references-and-notes">References and notes</a></li>
+</ul>
+<h2 id="intro">Intro</h2>
+<p>A few weeks ago I have stumbled upon <a href="https://news.ycombinator.com/item?id=27689664">this</a> post on hackernews containing a
+captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful
+for a few different reasons:</p>
+<ul>
+<li>It packs a lot of information in a clear and concise way without being overwhelming</li>
+<li>It is aesthetically very appealing</li>
+<li>It as some basic interactivity, letting the user drill down on each individual contributor</li>
+</ul>
+<p>Lacking a traditional background in computer science, I&rsquo;ve never thought of the type of data that could be generated by the
+development process itself. This sparked my interest to build a simple dashboard with the following requirements:</p>
+<ul>
+<li>Doesn&rsquo;t have to be aesthetically appealing. This choice has been taken out of sheer laziness: I definitely wanted to avoid spending
+too much time wrestling with css code over a weekend.</li>
+<li>Should allow users to explore any repo they can think of</li>
+<li>Should allow to filter commits by date</li>
+<li>Should allow users to filter commits by contributor</li>
+</ul>
+<h2 id="exploring-a-few-tools">Exploring a few tools</h2>
+<p>I am a long time <a href="https://shiny.rstudio.com/"><code>{shiny}</code></a> user and it is hands down my go-to library for any dashboard that goes beyond
+average complexity. Over the years, its development process has greatly improved, going from monolithic files to <a href="https://github.com/ThinkR-open/golem">libraries</a>
+supporting a more modular and workflow-oriented approach.</p>
+<p>In the past year or so I&rsquo;ve been working mostly on Python projects as putting R in production is not a viable option, as most of the clients I&rsquo;ve
+dealt with wouldn&rsquo;t have internal resources to maintain production-ready R code. Instead of building yet another Shiny app, I set myself to find something
+equivalent in Python.</p>
+<p>Surprisingly enough, finding something as mature and easy to use as Shiny has being sort of a struggle. The following are a bunch of libraries
+I&rsquo;ve found during research and not all of them have been researched in much detail (hence feel free to disagree on any of the comments below):</p>
+<ul>
+<li><a href="https://plotly.com/dash/">Plotly dash</a>: albeit Plotly being one of the most common plotting libraries (allowing extensive interactivity) I
+decided not to go with this option for a few reasons:
+<ul>
+<li>I wouldn&rsquo;t be able to mix plotting libraries if a specific visualization required anything more specific.</li>
+<li>You can definitely solve the point above by fiddling with <code>flask</code> (used for its backend) but I could see myself spending more time on it
+than on the actual visualization</li>
+<li>It lacks a proper layout template meaning that I&rsquo;d have to arrange and style each component by hand and write proper .css stylesheets</li>
+</ul>
+</li>
+<li><a href="://bokeh.org/">Bokeh</a>: looks like a nice visualization library with some interactivity baked in it. Unfortunately the &ldquo;dashboarding&rdquo; part is left
+to the user.</li>
+<li><a href="https://github.com/adamhajari/spyre">Spyre</a>: abandoned project (last commit dating back to 3 years ago).</li>
+</ul>
+<p>After some research I decided to give <a href="https://streamlit.io">streamlit</a> a go as it offers the right amount of interactivity and its layout approach, albeit
+being a bit restrictive, looks flexible enough to churn out something decent in a relatively short amount of time.</p>
+<h2 id="project-structure">Project structure</h2>
+<p>The project has been structured in the following way:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">.
+├── app
+│   ├── dashboard.py  <span style="color:#6272a4"># the actual dashboard</span>
+│   ├── __init__.py
+│   ├── repo.py  <span style="color:#6272a4"># some helper functions to download data</span>
+│   ├── ui.py  <span style="color:#6272a4"># plot functions</span>
+│   └── utils.py  <span style="color:#6272a4"># some dashboard-related helpers</span>
+├── Dockerfile  
+├── README.md
+└── requirements.txt
+</code></pre></div><p>This allows to keep the app organized in three distinct blocks with the following logic:</p>
+<ul>
+<li>Everything related to plotting and user interaction should live in <code>ui.py</code>. This could be further split into <code>plots.py</code> and <code>ui.py</code> when building
+large apps to avoid having too much stuff in the same module</li>
+<li>Data preprocessing and helper methods live in <code>utils.py</code></li>
+<li>The dashboard is assembled in <code>dashboard.py</code></li>
+<li><code>repo.py</code> deals with retrieving the commit history from a remote git repository</li>
+</ul>
+<p>Following the logic above, a very stripped down app might look like something in the lines of:</p>
+<p><a href="https://github.com/andodet/git-overview/blob/master/app/dashboard.py"><code>dashboard.py</code></a>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#ff79c6">import</span> streamlit <span style="color:#ff79c6">as</span> st
+
+<span style="color:#ff79c6">import</span> utils
+<span style="color:#ff79c6">import</span> ui
+
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">body</span>(data):
+    <span style="color:#6272a4"># Grab the sidebar filter values declared in `ui.py`</span>
+    a <span style="color:#ff79c6">=</span> ui<span style="color:#ff79c6">.</span>get_sidebar(data)
+
+    <span style="color:#6272a4"># Filter data</span>
+    data  <span style="color:#ff79c6">=</span> utils<span style="color:#ff79c6">.</span>filter_by_a(data, a)
+
+    <span style="color:#6272a4"># Display dataframe in a container </span>
+    <span style="color:#ff79c6">with</span> st<span style="color:#ff79c6">.</span>beta_container():
+        ui<span style="color:#ff79c6">.</span>write_table(data)
+    
+
+<span style="color:#ff79c6">if</span> __name__ <span style="color:#ff79c6">==</span> <span style="color:#f1fa8c">&#34;__main__&#34;</span>:
+    data <span style="color:#ff79c6">=</span> utils<span style="color:#ff79c6">.</span>get_data()
+    body <span style="color:#ff79c6">=</span> body(data)
+</code></pre></div><p><a href="https://github.com/andodet/git-overview/blob/master/app/ui.py"><code>ui.py</code></a>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#ff79c6">import</span> streamlit <span style="color:#ff79c6">as</span> st
+<span style="color:#ff79c6">import</span> utils
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">get_sidebar</span>(data):
+    <span style="color:#6272a4"># Just one filter as an example</span>
+    a_max <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">int</span>(data[<span style="color:#f1fa8c">&#39;A&#39;</span>]<span style="color:#ff79c6">.</span>max())
+    a_min <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">int</span>(data[<span style="color:#f1fa8c">&#39;A&#39;</span>]<span style="color:#ff79c6">.</span>min())
+    a <span style="color:#ff79c6">=</span> st<span style="color:#ff79c6">.</span>sidebar<span style="color:#ff79c6">.</span>slider(<span style="color:#f1fa8c">&#34;Filter by A&#34;</span>, min_value<span style="color:#ff79c6">=</span>a_min, max_value<span style="color:#ff79c6">=</span>a_max)
+
+    <span style="color:#6272a4"># NOTE: you can return a tuple if mulitple filters are applied</span>
+    <span style="color:#ff79c6">return</span> a
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">write_table</span>(data):
+    <span style="color:#ff79c6">return</span> st<span style="color:#ff79c6">.</span>dataframe(data, height<span style="color:#ff79c6">=</span><span style="color:#bd93f9">1000</span>)
+</code></pre></div><p><a href="https://github.com/andodet/git-overview/blob/master/app/utils.py"><code>utils.py</code></a>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#ff79c6">import</span> streamlit <span style="color:#ff79c6">as</span> st
+
+<span style="color:#ff79c6">import</span> pandas <span style="color:#ff79c6">as</span> pd
+<span style="color:#ff79c6">import</span> numpy <span style="color:#ff79c6">as</span> np
+
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">get_data</span>():
+    <span style="color:#6272a4"># Just generate some random data</span>
+    seed <span style="color:#ff79c6">=</span> np<span style="color:#ff79c6">.</span>random<span style="color:#ff79c6">.</span>RandomState(seed <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">1234</span>)
+    df <span style="color:#ff79c6">=</span> pd<span style="color:#ff79c6">.</span>DataFrame(seed<span style="color:#ff79c6">.</span>uniform(low<span style="color:#ff79c6">=</span><span style="color:#bd93f9">0</span>,high<span style="color:#ff79c6">=</span><span style="color:#bd93f9">100</span>,size<span style="color:#ff79c6">=</span>(<span style="color:#bd93f9">100</span>, <span style="color:#bd93f9">5</span>)), columns<span style="color:#ff79c6">=</span><span style="color:#8be9fd;font-style:italic">list</span>(<span style="color:#f1fa8c">&#39;ABCDF&#39;</span>))
+    <span style="color:#ff79c6">return</span> df
+
+
+<span style="color:#ff79c6">def</span> <span style="color:#50fa7b">filter_by_a</span>(data, val):
+    <span style="color:#ff79c6">return</span> data[data[<span style="color:#f1fa8c">&#39;A&#39;</span>] <span style="color:#ff79c6">&gt;=</span> val]
+</code></pre></div><p>I am sure there are plenty of better ways to organize code especially for larger projects (leveraging folders for instance), but the current structure
+has been more than enough for the size of this experiment.</p>
+<h2 id="overview-of-dplyr-activity">Overview of <code>dplyr</code> activity</h2>
+<p>Coming from an R background it came pretty natural to have a look at <a href="https://github.com/tidyverse/dplyr"><code>{dplyr}</code></a> commit history. As expected, it is
+clear how the bulk of the library was written by Hadley, Romain Francois, Kiril Muller and Lionel Henry.</p>
+<p><a href="/images/2021-07-10-git-streamlit/top_contributors.png"><img src="/images/2021-07-10-git-streamlit/top_contributors.png" alt=""></a>
+<a href="/images/2021-07-10-git-streamlit/cumulative_contributors.png"><img src="/images/2021-07-10-git-streamlit/cumulative_contributors.png" alt=""></a></p>
+<p>Also, it seems that most contributors have added a large number of lines around January 2021. This makes
+perfect sense as around that time <a href="https://github.com/tidyverse/dplyr/releases/tag/v1.0.3"><code>dplyr 1.0.3</code></a> was released.</p>
+<p>Rebuilding documentation is one of the central steps of R package development workflow, this can be spotted by comparing the number of daily commits and lines
+changed. Surprisingly there have been days in which the number of commits has been fairly small while having touched a large number of lines. Such pattern can be
+spotted in late January 2021:</p>
+<p><a href="/images/2021-07-10-git-streamlit/commits.png"><img src="/images/2021-07-10-git-streamlit/commits.png" alt=""></a>
+<a href="/images/2021-07-10-git-streamlit/lines_added.png"><img src="/images/2021-07-10-git-streamlit/lines_added.png" alt=""></a></p>
+<p>In fact, on Jan 29 2021 a large <a href="https://github.com/tidyverse/dplyr/commit/284e77e4aa03cf89e9bc61e0bda337b982c4b9e8">update</a> to the <code>revdep/</code> folder
+(containing information on reverse dependencies) was performed, resulting in the deletion of <code>revdep/failures.md</code> and <code>revdep/problems.md</code>, each containing 50k+ rows.</p>
+<p>As a bit of a surprise I&rsquo;ve noticed some duplication in contributor names (Romain Francois vs. Romain François) which is completely fine given it is fairly common to
+change machines and rewrite your .gitconfig file over the years. I might add some de-duplication logic in some future revision.</p>
+<h2 id="deploying">Deploying</h2>
+<h3 id="streamlit-share">Streamlit Share</h3>
+<p>For showcasing simple enough dashboards, if control over machine type and setup flexibility is not a strong priority, streamlit already offers a
+<a href="https://share.streamlit.io/">platform</a> to publicly share dashboards. This solution is invite-only but it only took ~24h to get an invite code in my case.</p>
+<p>To set it up it is enough to have your dashboard files in a <strong>public</strong> repository (containing a <code>reuqirements.txt</code> file) and deploy a new app from the GUI.
+You can check the final result at <a href="https://share.streamlit.io/andodet/git-overview/app/dashboard.py">this</a> link.</p>
+<h3 id="google-app-engine">Google App Engine</h3>
+<p>When expecting large traffic volumes on a dashboard, Google App Engine can come to the rescue. This solution (as most of cloud providers) is particularly appealing
+due to managed auto-scaling features. The first requirement for the deployment is to have a <a href="https://github.com/andodet/git-overview/blob/master/Dockerfile">Dockerfile</a>
+in place, it might be something along the following lines:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#ff79c6">FROM</span><span style="color:#f1fa8c"> python:3.9-slim-buster</span>
+
+<span style="color:#6272a4"># The dashboard can pull remote git repos</span>
+<span style="color:#ff79c6">RUN</span> apt-get update <span style="color:#ff79c6">&amp;&amp;</span> <span style="color:#f1fa8c">\
+</span><span style="color:#f1fa8c"></span>    apt-get -y install git
+
+<span style="color:#ff79c6">COPY</span> . .
+
+<span style="color:#ff79c6">RUN</span> pip install -r requirements.txt
+
+<span style="color:#ff79c6">WORKDIR</span><span style="color:#f1fa8c"> app/</span>
+
+<span style="color:#ff79c6">EXPOSE</span><span style="color:#f1fa8c"> 8501</span>
+<span style="color:#ff79c6">ENTRYPOINT</span> [<span style="color:#f1fa8c">&#34;streamlit&#34;</span>,<span style="color:#f1fa8c">&#34;run&#34;</span>]
+<span style="color:#ff79c6">CMD</span> [<span style="color:#f1fa8c">&#34;dashboard.py&#34;</span>, <span style="color:#f1fa8c">&#34;--server.port=8080&#34;</span>, <span style="color:#f1fa8c">&#34;--server.address=0.0.0.0&#34;</span>]
+</code></pre></div><p>Secondly, a <code>app.yaml</code> file, containing deployment settings (auto-scaling settings will be set in this file) is needed:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ff79c6">service</span>: git-streamlit
+<span style="color:#ff79c6">runtime</span>: custom
+<span style="color:#ff79c6">env</span>: flex
+</code></pre></div><p>Finally, we can deploy everything with a simple one-liner:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ gcloud app deploy app.yaml
+</code></pre></div><p>After this step, we should find the url for the freshly deployed app in console output.</p>
+<h2 id="closing-remarks">Closing remarks</h2>
+<p>I&rsquo;ve found <code>streamlit</code> extremely intuitive and was surprised by the extremely small number of roadblocks I&rsquo;ve encountered. As of July 2021 I think the tool feels a bit
+like notebooks on steroids (not to be taken as a negative comment). While thinking about the whole journey, few points crossed my mind:</p>
+<ul>
+<li>Albeit I was building a very simple dashboard, I couldn&rsquo;t find any established best-practice on how to organize a very large project.</li>
+<li>Scalability: <a href="https://altair-viz.github.io/getting_started/overview.html"><code>altair</code></a> plotting library stores the entire dataframe on the client, this forces to pre-aggregate
+the data before plotting.</li>
+<li><a href="https://pydriller.readthedocs.io/en/latest/"><code>pydriller</code></a>, used to interact with git repositories, is a very powerful library but it can take a long to traverse through large commit
+histories. In case you want to analyse very long commit histories I&rsquo;d suggest to use the <a href="https://github.com/andodet/git-overview/blob/master/app/repo.py"><code>repo</code></a> module
+(can be used as a cli utility) to process a commit histories and feed the dashboard the resulting .json file. This could be scheduled as a cron job that will download all
+commits for the previous day to (to avoid downloading the entire commit history each time), I can see this approach working when setting up a raspi for a big screen in an office.</li>
+<li>Being as very simple weekend project, I&rsquo;ve consciously decided to overlook <strong>testing</strong>. Two points can be raised about it:
+<ul>
+<li>Data aggregation could be factored out from plotting methods to test them independently.</li>
+<li>Frontend should be tested using a browser emulation like <code>selenium</code> as described in <a href="https://blog.streamlit.io/testing-streamlit-apps-using-seleniumbase/">this</a> article. The approach
+is identical to testing Shiny apps: open the app, take a screenshot and check it is identical to a reference one previously stored.</li>
+</ul>
+</li>
+</ul>
+<h2 id="references-and-notes">References and notes</h2>
+<ol>
+<li><a href="https://github.com/andodet/git-overview">This</a> repo contains all the code produced for this post.</li>
+<li>The dashboard is publicly available <a href="https://share.streamlit.io/andodet/git-overview/app/dashboard.py">here</a>.</li>
+<li>I might pick up this post again in the future, to expand on testing and smooth some rough edges</li>
+</ol>
+
+  
+  </div>
+</article>
+
+
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright  &copy; 2021  2021 Andrea dodet 
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+
+  </div>
+</body>
+
+<link rel="stylesheet" href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
+</html>

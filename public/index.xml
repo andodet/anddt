@@ -7,15 +7,23 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <copyright>2021 Andrea dodet</copyright>
-    <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 10 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Playing around with streamlit dashboards</title>
+      <link>https://anddt.com/post/streamlit-git-viz/</link>
+      <pubDate>Sat, 10 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://anddt.com/post/streamlit-git-viz/</guid>
+      <description>Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying  Streamlit Share Google App Engine   Closing remarks References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:</description>
+    </item>
+    
     <item>
       <title>Setting up a data-playground with docker-compose and Faker</title>
       <link>https://anddt.com/post/mock-environment/</link>
       <pubDate>Wed, 01 Jul 2020 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/mock-environment/</guid>
-      <description>In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&amp;rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&amp;rsquo;ve found this approach quite handy for three reasons:
- No time wasted on finding the right dataset in the interwebs.</description>
+      <description>Setting up a data-playground with docker-compose and Faker In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&amp;rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&amp;rsquo;ve found this approach quite handy for three reasons:</description>
     </item>
     
     <item>
@@ -24,7 +32,7 @@
       <pubDate>Tue, 03 Mar 2020 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/shiny-plot-caching/</guid>
-      <description>Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
+      <description>Caching plots in Shiny  Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
     </item>
     
     <item>
@@ -33,7 +41,7 @@
       <pubDate>Tue, 04 Feb 2020 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/gcp-functions/</guid>
-      <description>On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&amp;rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+      <description>Hosting simple scripts for cheap on GCP On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&amp;rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
 I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf.</description>
     </item>
     
@@ -43,7 +51,7 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
       <pubDate>Thu, 16 Jan 2020 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/location-history/</guid>
-      <description>Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good).</description>
+      <description>Digging into Google location history  Setup Data preprocess How big is the dataset? Time distribution Data accuracy Plot data on maps Handmade Geocoding - Time spent by city Where was the data collected and for how long? Total distance Activities Extras - Animations  By the end of the year I received a mail from Google with a recap of my location history for 2019 and didn’t pay much attention to it right away ( other than thinking to turn location services off for good).</description>
     </item>
     
     <item>
@@ -52,7 +60,7 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
       <pubDate>Wed, 08 Jan 2020 20:36:36 +0100</pubDate>
       
       <guid>https://anddt.com/post/experiments/</guid>
-      <description>I&amp;rsquo;ve always found well-written essays particularly fascinating, to the point that I&amp;rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.</description>
+      <description>Experiments I&amp;rsquo;ve always found well-written essays particularly fascinating, to the point that I&amp;rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.</description>
     </item>
     
   </channel>

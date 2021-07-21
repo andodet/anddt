@@ -14,7 +14,7 @@
       <pubDate>Tue, 03 Mar 2020 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/shiny-plot-caching/</guid>
-      <description>Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
+      <description>Caching plots in Shiny  Bringing Shiny into production Caching plots Measuring speed benefits Closing remarks References  Bringing Shiny into production In the past few days I spent some spare time going through a bunch of old rstudio::conf talks about scaling and deploying Shiny apps into production. Dashboard latency times, load times and general dashboard reactivity come regularly as the main challenges to overcome in order to provide a good user experience and ensure good adoption.</description>
     </item>
     
   </channel>
