@@ -14,7 +14,7 @@
       <pubDate>Sat, 10 Jul 2021 00:00:00 +0000</pubDate>
       
       <guid>https://anddt.com/post/streamlit-git-viz/</guid>
-      <description>Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying  Streamlit Share Google App Engine   Closing remarks References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:</description>
+      <description>Playing around with streamlit dashboards  Intro Exploring a few tools Project structure Overview of dplyr activity Deploying + Streamlit Share + Google App Engine Closing remarks [Extra] Profiling slow methods References and notes  Intro A few weeks ago I have stumbled upon this post on hackernews containing a captivating piece of data visualization on the development history of git. I believe the visualization is particularly powerful for a few different reasons:</description>
     </item>
     
     <item>

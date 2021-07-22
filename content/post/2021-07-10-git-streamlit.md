@@ -17,11 +17,11 @@ tags:
 * [Project structure](#project-structure)
 * [Overview of `dplyr` activity](#overview-of--dplyr--activity)
 * [Deploying](#deploying)
-  + [Streamlit Share](#streamlit-share)
-  + [Google App Engine](#google-app-engine)
+        + [Streamlit Share](#streamlit-share)
+        + [Google App Engine](#google-app-engine)
 * [Closing remarks](#closing-remarks)
+* [[Extra] Profiling slow methods](#-extra--profiling-slow-methods)
 * [References and notes](#references-and-notes)
-
 
 ## Intro
 
@@ -243,6 +243,57 @@ commits for the previous day to (to avoid downloading the entire commit history 
     * Data aggregation could be factored out from plotting methods to test them independently.
     * Frontend should be tested using a browser emulation like `selenium` as described in [this](https://blog.streamlit.io/testing-streamlit-apps-using-seleniumbase/) article. The approach
     is identical to testing Shiny apps: open the app, take a screenshot and check it is identical to a reference one previously stored.
+
+## [Extra] Profiling slow methods
+
+After deploying the app on streamlit share I've dropped a short post on [r/Python](https://www.reddit.com/r/Python/comments/ooyuec/visualize_git_repo_activity_using_streamlit/) to get some
+traffic and observe the dashboard behaving in a semi-realistic scenario. From the start it was clear how somehting in the `app/repo.py` script was causing problems as the machine kept
+dying when computing metrics for largish repos. Through [`line_profiler`](https://github.com/pyutils/line_profiler) it is possible to inspect the execution time of every single line of code:
+```sh
+$ python -m kernprof -lv -u 0.1 test_bench.py
+processing repo with 10 workers
+Wrote profile results to test_bench.py.lprof
+Timer unit: 0.1 s
+
+Total time: 6.87896 s
+File: test_bench.py
+Function: main at line 8
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     8                                           @profile
+     9                                           def main():
+    10         1          0.0      0.0      0.0      repo_path = 'https://github.com/andodet/anddt.git'
+    11         2          0.0      0.0      0.0      for w in n_workers:
+    12         1          0.0      0.0      0.0          print(f'processing repo with {w} workers')
+    13         1          0.0      0.0      0.0          start = time.time()
+    14         1          0.0      0.0      0.0          repo = Repository(repo_path, num_workers=w)
+    15         1          0.0      0.0      0.0          res = []
+    16        35         26.4      0.8     38.3          for commit in repo.traverse_commits():
+    17        68          0.0      0.0      0.0              res.append(
+    18        34          0.0      0.0      0.0                  {
+    19        34          0.0      0.0      0.0                      "hash": commit.hash,
+    20        34          0.0      0.0      0.0                      "author": commit.author.name,
+    21        34          0.0      0.0      0.0                      "committed_on": commit.committer_date.strftime("%Y-%m-%d %H:%M:%S"),
+    22        34          0.0      0.0      0.0                      "authored_on": commit.author_date.strftime("%Y-%m-%d %H:%M:%S"),
+    23        34          4.4      0.1      6.4                      "lines_added": commit.insertions,
+    24        34          4.5      0.1      6.5                      "lines_deleted": commit.deletions,
+    25        34          4.6      0.1      6.6                      "files_touched": commit.files,
+    26        34         28.4      0.8     41.3                      "dmm_unit_complexity": commit.dmm_unit_complexity,
+    27        34          0.5      0.0      0.8                      "dmm_unit_interfacing": commit.dmm_unit_interfacing,
+    28        34          0.0      0.0      0.0                      "is_merge": commit.merge,
+    29        34          0.0      0.0      0.0                      "message": commit.msg,
+    30                                                           }
+    31                                                       )
+    32         1          0.0      0.0      0.0          end = time.time()
+
+```
+
+From the output pasted above, it is clear that line **26** is the culprit here. Apparently, this method from `pydriller` computes 
+[Delta maintainability scores](https://pydriller.readthedocs.io/en/latest/deltamaintainability.html) for each commit. Commenting out that line has resulted in a 10x speedup in pulling the repo
+and building the dataset.
+
+Obviously this didn't have anything to do with streamlit or streamlit share themselves as it was caused by not reading some documentation properly...
 
 ## References and notes
 
