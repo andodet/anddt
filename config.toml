@@ -8,12 +8,6 @@ hasCJKLanguage = true
 
 enableRobotsTXT = true
 
-# Enable Disqus
-[params.comments]
-enabled = true
-engine = 'disqus'
-disqusShortname = "anddt-com"
-
 # Google Analytics
 googleAnalytics = "UA-58930119-2"
 
@@ -25,6 +19,11 @@ showAllPostsOnHomePage = true
 postOnHomePage = 15
 license = ""  # CC License
 rss = true
+
+[params.comments]
+enabled = true
+engine = 'disqus'
+disqusShortname = "anddt-com"
 
 [[params.social]]
 name = 'github'
