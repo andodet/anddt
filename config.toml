@@ -19,6 +19,7 @@ showAllPostsOnHomePage = true
 postOnHomePage = 15
 license = ""  # CC License
 rss = true
+css = ["custom.css"]
 
 [params.comments]
 enabled = true
