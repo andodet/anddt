@@ -16,10 +16,9 @@
   <meta property="og:title" content="Setting up a data-playground with docker-compose and Faker" />
 <meta property="og:description" content="Setting up a data-playground with docker-compose and Faker In the past few days I played around with Airflow to get familiar with its DAG syntax. Instead of scrambling around to find the right dataset to be imported in a MySQL instance I&rsquo;ve decided to set-up a development environment from scratch that allowed me to quickly change the structure and type of data as I pleased. I&rsquo;ve found this approach quite handy for three reasons:" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://anddt.com/post/mock-environment/" /><meta property="article:section" content="post" />
+<meta property="og:url" content="https://anddt.com/post/mock-environment/" />
 <meta property="article:published_time" content="2020-07-01T00:00:00+00:00" />
 <meta property="article:modified_time" content="2020-07-01T00:00:00+00:00" />
-
 
   <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Setting up a data-playground with docker-compose and Faker"/>
@@ -62,6 +61,7 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
+
   
   
 </head>
@@ -320,7 +320,7 @@ been created correctly. Pytest <a href="https://docs.pytest.org/en/stable/fixtur
 can be used to set up a db connection before launching the actual tests:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#ff79c6">import</span> pytest
 
-@pytest<span style="color:#ff79c6">.</span>fixture
+@pytest.fixture
 <span style="color:#ff79c6">def</span> <span style="color:#50fa7b">db_conn</span>():
     <span style="color:#ff79c6">from</span> sqlalchemy <span style="color:#ff79c6">import</span> (
         create_engine,
@@ -343,19 +343,19 @@ can be used to set up a db connection before launching the actual tests:</p>
     <span style="color:#ff79c6">try</span>:
         engine <span style="color:#ff79c6">=</span> create_engine(engine<span style="color:#ff79c6">.</span>url<span style="color:#ff79c6">.</span>URL(<span style="color:#ff79c6">**</span>config))
     <span style="color:#ff79c6">except</span> InterfaceError:
-        <span style="color:#8be9fd;font-style:italic">print</span>(<span style="color:#f1fa8c">&#34;Something went wrong while connecting to MySQL db&#34;</span>)
+        <span style="color:#ff79c6">print</span>(<span style="color:#f1fa8c">&#34;Something went wrong while connecting to MySQL db&#34;</span>)
 
-    Base<span style="color:#ff79c6">.</span>prepare(engine, reflect<span style="color:#ff79c6">=</span><span style="color:#ff79c6">True</span>)
+    Base<span style="color:#ff79c6">.</span>prepare(engine, reflect<span style="color:#ff79c6">=</span>True)
     <span style="color:#ff79c6">yield</span>  engine
-    <span style="color:#8be9fd;font-style:italic">print</span>(<span style="color:#f1fa8c">&#34;Disposing engine&#34;</span>)
+    <span style="color:#ff79c6">print</span>(<span style="color:#f1fa8c">&#34;Disposing engine&#34;</span>)
     engine<span style="color:#ff79c6">.</span>dispose()
 
 
 <span style="color:#ff79c6">def</span> <span style="color:#50fa7b">test_user_table_exists</span>(db_conn):
-    <span style="color:#ff79c6">assert</span> db_conn<span style="color:#ff79c6">.</span>has_table(<span style="color:#f1fa8c">&#34;users&#34;</span>) <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">True</span>
+    <span style="color:#ff79c6">assert</span> db_conn<span style="color:#ff79c6">.</span>has_table(<span style="color:#f1fa8c">&#34;users&#34;</span>) <span style="color:#ff79c6">==</span> True
 
 <span style="color:#ff79c6">def</span> <span style="color:#50fa7b">test_tx_table_exists</span>(db_conn):
-    <span style="color:#ff79c6">assert</span> db_conn<span style="color:#ff79c6">.</span>has_table(<span style="color:#f1fa8c">&#34;transactions&#34;</span>) <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">True</span> 
+    <span style="color:#ff79c6">assert</span> db_conn<span style="color:#ff79c6">.</span>has_table(<span style="color:#f1fa8c">&#34;transactions&#34;</span>) <span style="color:#ff79c6">==</span> True 
 </code></pre></div><h2 id="setting-up-github-actions">Setting up Github Actions</h2>
 <p>In order to make sure that no change will break the environment, the above mentioned
 docker-compose file can be integrated as a CI step as a Github Action. In a nutshell,

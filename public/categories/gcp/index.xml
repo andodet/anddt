@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GCP on Andrea Dodet</title>
+    <link>https://anddt.com/categories/gcp/</link>
+    <description>Recent content in GCP on Andrea Dodet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <copyright>2021 Andrea dodet</copyright>
+    <lastBuildDate>Mon, 29 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/categories/gcp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Experimenting with CI for Google Cloud Functions Monorepo</title>
+      <link>https://anddt.com/post/ci-cloudfunctions-monorepo/</link>
+      <pubDate>Mon, 29 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://anddt.com/post/ci-cloudfunctions-monorepo/</guid>
+      <description>Sensible CI for a Google Cloud Function monorepo For the past few months I&amp;rsquo;ve been working for a client that has been around for long enough to have amassed a fair bit of technical debt. After observing for quite some time team dynamics I believe the main root causes can be summarised as:
+ High employee turnover. Non tecnical Product Managers/Owners. Lack of documentation on multiple levels (both technical and business).</description>
+    </item>
+    
+    <item>
+      <title>Hosting simple scripts for cheap on GCP</title>
+      <link>https://anddt.com/post/gcp-functions/</link>
+      <pubDate>Tue, 04 Feb 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://anddt.com/post/gcp-functions/</guid>
+      <description>Hosting simple scripts for cheap on GCP On giving an old Macbook Air some rest In the past few weeks I wanted to get a sense of how many remote-friendly jobs are posted on stackoverflow on a given day. To do this, I&amp;rsquo;ve written a small Python utility that parses their XML feed and uploads the results on a spreadsheet on Google Drive. So far so good.
+I initially hosted this script as a crontab job on my old Macbook Air that sits collecting dust on a bookshelf.</description>
+    </item>
+    
+  </channel>
+</rss>

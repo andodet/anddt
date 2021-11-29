@@ -5,9 +5,7 @@ date: 2020-02-04
 draft: false
 comments: true
 categories:
-    - Python
-tags:
-    - gcp
+    - GCP
 ---
 
 # Hosting simple scripts for cheap on GCP

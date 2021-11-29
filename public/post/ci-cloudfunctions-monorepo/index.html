@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/font-awesome/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title> Experimenting with CI for Google Cloud Functions Monorepo | Andrea Dodet</title>
+  <link rel = 'canonical' href = 'https://anddt.com/post/ci-cloudfunctions-monorepo/'>
+  <meta name="description" content="Jotting down things I&#39;d like to understand">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="all,follow">
+  <meta name="googlebot" content="index,follow,snippet,archive">
+  <meta property="og:title" content="Experimenting with CI for Google Cloud Functions Monorepo" />
+<meta property="og:description" content="Sensible CI for a Google Cloud Function monorepo For the past few months I&rsquo;ve been working for a client that has been around for long enough to have amassed a fair bit of technical debt. After observing for quite some time team dynamics I believe the main root causes can be summarised as:
+ High employee turnover. Non tecnical Product Managers/Owners. Lack of documentation on multiple levels (both technical and business)." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://anddt.com/post/ci-cloudfunctions-monorepo/" />
+<meta property="article:published_time" content="2021-11-29T00:00:00+00:00" />
+<meta property="article:modified_time" content="2021-11-29T00:00:00+00:00" />
+
+  <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Experimenting with CI for Google Cloud Functions Monorepo"/>
+<meta name="twitter:description" content="Sensible CI for a Google Cloud Function monorepo For the past few months I&rsquo;ve been working for a client that has been around for long enough to have amassed a fair bit of technical debt. After observing for quite some time team dynamics I believe the main root causes can be summarised as:
+ High employee turnover. Non tecnical Product Managers/Owners. Lack of documentation on multiple levels (both technical and business)."/>
+
+  
+  
+    
+  
+  
+  <link rel="stylesheet" href="https://anddt.com/css/styles.7c754dee4bfc873743b12288cf94eadcfd3bee1f2cff5a106753b8047879ac5195c8d8ad90f6d73f12e9c841696c51a0abdeae8394e3eb3079f310f418ddf9ec.css">
+
+  
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
+  
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  
+
+  
+<link rel="icon" type="image/png" href="https://anddt.com/images/favicon.ico" />
+
+  
+  
+  
+  
+  
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-58930119-2', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+  
+  
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+  <div class="content index py4">
+
+    <header id="header">
+  <a href="https://anddt.com">
+  
+    <div id="logo" style="background-image: url(https://anddt.com/logo.png)"></div>
+  
+  <div id="title">
+    <h1>Andrea Dodet</h1>
+  </div>
+  </a>
+  <div id="nav">
+    <ul>
+      <li class="icon">
+        <a href="#" aria-label="Menu"><i class="fas fa-bars fa-2x" aria-hidden="true"></i></a>
+      </li>
+      
+    </ul>
+  </div>
+</header>
+
+
+
+    
+<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <div class="content" itemprop="articleBody">
+  
+    <h1 id="sensible-ci-for-a-google-cloud-function-monorepo">Sensible CI for a Google Cloud Function monorepo</h1>
+<p>For the past few months I&rsquo;ve been working for a client that has been around for long enough
+to have amassed a fair bit of technical debt. After observing for quite some time team dynamics I believe
+the main root causes can be summarised as:</p>
+<ul>
+<li>High employee turnover.</li>
+<li>Non tecnical Product Managers/Owners.</li>
+<li>Lack of documentation on multiple levels (both technical and business).</li>
+<li>Layer of custom built tools and abstractions on top of GCP services.</li>
+<li>Focus on quantity over quality (no time to stop reflecting on tooling improvement).</li>
+</ul>
+<p>Without dwelling too much on organizational theory it&rsquo;s quite clear how the combination of the points above
+can negatively affect the quality tooling and development experience in general. What has become particularly
+frustrating (hence the inspiration for this post) is that Jenkins builds take up to 9 hours (!!!) to propagate
+infrastructural changes to production.</p>
+<p>I am not a software engineer by trade and I am not particularly sure how typical such scenario is in large enterprises.
+I just feel that, compared to the idylliac articles describiing DevOps best practices, wait times are way too
+long by any standard. This is obviously hampering the ability to work in an iterative manner and throw different
+approaches to a problem. It is common to go for a <em>good enough</em> solution to avoid deployment times of a potentially
+better approach.</p>
+<h2 id="context-and-goal">Context and Goal</h2>
+<p>Data infrastructure for the data platform (GCS buckets, Pub/Sub topics, etc.) is set up up in a declarative way
+through .yaml files that get parsed by deployment scripts running as Jenkins builds. In a nutshell, every time a
+commit makes it to <code>main</code>, the script parses and interacts with the <strong>the entire</strong> infrastructure.</p>
+<p>Now, I am a big fan of Google Cloud Functions and I consider them a good fit for lots of data ingestion use cases.
+They are particularly ideal in in scenarios where the workload doesn&rsquo;t justify a full-blown Dataflow pipeline, such
+as:</p>
+<ul>
+<li>Pinging an API endpoint on a schedule and drop results in a BigQuery table or GCS bucket.</li>
+<li>Produce or consume Pub/Sub messages based on certain events.</li>
+<li>Retrieve model predictions from a model deployed in Google AI Platform.</li>
+</ul>
+<h3 id="goal">Goal</h3>
+<p>This example should be considered as an exercise (there are probably better suited approaches for production environmnets).
+Its goals can be summarised in the following points:</p>
+<ul>
+<li>Set up CI (using Github Actions and Google Cloud Build) to deploy Cloud Functions to our GCP project any time
+a change is deployed to <code>main</code>.</li>
+<li>Add logic to make sure <code>gcloud builds submit</code> is launched <strong>only</strong> for changed functions.</li>
+<li>Implement CI to run unit tests for <strong>all</strong> Cloud Functions everytime a change is committed. This is more of a safety
+measure (we could probably test only functions that have actually changed), but given test suites tend to be fairly
+ligthweight for cloud functions I see no harm in doing that.</li>
+<li>Make sure the CI pipeline can handle different runtimes (e.g Golang and Python based functions will live in different
+subfolders).</li>
+</ul>
+<h2 id="project-structure">Project structure</h2>
+<p>Most of the times, Cloud Functions are so specific in scope (and implementation) that I feel they don&rsquo;t deserve a repo
+by themselves as this would probably create a proliferation of many small repositories. The way I usually organise
+project is to group functions by scope (e.g data-ingestion) or project.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+├── func_1
+│   ├── cloudbuild.yaml
+│   ├── main.py
+│   ├── requirements.txt
+│   └── test_func_1.py
+├── func_2
+│   ├── cloudbuild.yaml
+│   ├── main.py
+│   ├── requirements.txt
+│   └── test_func_2.py
+└── func_4
+    ├── cloudbuild.yaml
+    ├── go.mod
+    ├── main.go
+    └── main_test.go
+</code></pre></div><p>I&rsquo;ve found this folder structure to be handy for a few different reasons:</p>
+<ol>
+<li>Each function is logically separated in subfolders (<code>func_a</code>, <code>func_b</code>, etc.).</li>
+<li>By having a <code>cloudbuild.yaml</code> file in each subfolder, it is easy to accomodate specific needs using deployment
+<a href="https://cloud.google.com/sdk/gcloud/reference/functions/deploy">arguments</a>.</li>
+<li>Clean separation of dependencies.</li>
+<li>I can mix runtimes if I want to write something in golang or nodejs.</li>
+</ol>
+<h2 id="test-everyting-deploy-what-you-need">Test everyting, deploy what you need</h2>
+<p>Given we&rsquo;re mixing up runtimes in different subfolders, we&rsquo;ll need to traverse through all folders and check for file
+extensions before invoking the correct test suite (e.g <code>gotest</code> or <code>pytest</code>). This ha been achieved with the following
+shell script:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#ff79c6">#!/bin/sh
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4"># For every file in repo</span>
+<span style="color:#ff79c6">for</span> i in <span style="color:#ff79c6">$(</span>ls<span style="color:#ff79c6">)</span>; <span style="color:#ff79c6">do</span>
+  <span style="color:#6272a4"># Check if it&#39;s a folder</span>
+  <span style="color:#ff79c6">if</span> <span style="color:#ff79c6">[[</span> -d <span style="color:#f1fa8c">&#34;</span><span style="color:#8be9fd;font-style:italic">$i</span><span style="color:#f1fa8c">&#34;</span> <span style="color:#ff79c6">]]</span>; <span style="color:#ff79c6">then</span>
+    <span style="color:#8be9fd;font-style:italic">cd</span> <span style="color:#8be9fd;font-style:italic">$i</span>
+      <span style="color:#8be9fd;font-style:italic">is_py</span><span style="color:#ff79c6">=</span><span style="color:#bd93f9">0</span>
+      <span style="color:#ff79c6">for</span> f in <span style="color:#ff79c6">$(</span>ls<span style="color:#ff79c6">)</span>; <span style="color:#ff79c6">do</span>
+        <span style="color:#6272a4"># Check if it contains python files</span>
+        <span style="color:#ff79c6">if</span> <span style="color:#ff79c6">[[</span> <span style="color:#8be9fd;font-style:italic">$f</span> <span style="color:#ff79c6">==</span> *.py <span style="color:#ff79c6">]]</span>; <span style="color:#ff79c6">then</span>
+          <span style="color:#8be9fd;font-style:italic">is_py</span><span style="color:#ff79c6">=</span><span style="color:#ff79c6">$((</span>is_py+1<span style="color:#ff79c6">))</span>
+        <span style="color:#ff79c6">fi</span>
+      <span style="color:#ff79c6">done</span>
+      <span style="color:#6272a4"># Run tests if it does</span>
+      <span style="color:#ff79c6">if</span> <span style="color:#ff79c6">((</span><span style="color:#8be9fd;font-style:italic">is_py</span> <span style="color:#ff79c6">==</span> 0<span style="color:#ff79c6">))</span>; <span style="color:#ff79c6">then</span>
+        <span style="color:#8be9fd;font-style:italic">cd</span> .. 
+        <span style="color:#ff79c6">continue</span>
+      <span style="color:#ff79c6">else</span>
+        pip install -r requirements.txt
+        pytest
+        <span style="color:#8be9fd;font-style:italic">cd</span> ..
+      <span style="color:#ff79c6">fi</span>
+  <span style="color:#ff79c6">fi</span>
+<span style="color:#ff79c6">done</span>
+</code></pre></div><p>This script will be executed through the following Github Action workflow file on every PR raised
+against target branches:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ff79c6">on</span>:
+  <span style="color:#ff79c6">pull_request</span>:
+    <span style="color:#ff79c6">branches</span>: [main, master, dev]
+
+<span style="color:#ff79c6">name</span>: pytest
+
+<span style="color:#ff79c6">jobs</span>:
+  <span style="color:#ff79c6">deploy_functions</span>:
+    <span style="color:#ff79c6">runs-on</span>: ubuntu-latest
+
+    <span style="color:#ff79c6">steps</span>:
+      - <span style="color:#ff79c6">uses</span>: actions/checkout@v2
+
+      - <span style="color:#ff79c6">name</span>: install_pytest
+        <span style="color:#ff79c6">shell</span>: bash
+        <span style="color:#ff79c6">run</span>: |<span style="color:#f1fa8c">
+</span><span style="color:#f1fa8c">          </span>          pip install pytest
+
+      - <span style="color:#ff79c6">name</span>: pytest
+        <span style="color:#ff79c6">shell</span>: bash
+        <span style="color:#ff79c6">run</span>: |<span style="color:#f1fa8c">
+</span><span style="color:#f1fa8c">          chmod +x &#34;${GITHUB_WORKSPACE}/.github/pytest_run.sh&#34;
+</span><span style="color:#f1fa8c">          source ${GITHUB_WORKSPACE}/.github/pytest_run.sh</span>          
+
+</code></pre></div><h3 id="deployment">Deployment</h3>
+<p>Deployment will be achieved by using Cloud Build: each subfolder will contain a <code>cloudbuild.yaml</code> file that will
+define how the function should be deployed. This file will contain all the function-specific deployment parameters
+(e.g runtime, invocation method, etc.). To be extra cautious, we will re-run tests before deploying:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ff79c6">steps</span>:
+  - <span style="color:#ff79c6">name</span>: <span style="color:#f1fa8c">&#34;docker.io/library/python:3.7&#34;</span>
+    <span style="color:#ff79c6">id</span>: Test
+    <span style="color:#ff79c6">entrypoint</span>: /bin/sh
+    <span style="color:#ff79c6">args</span>:
+      - -c
+      - <span style="color:#f1fa8c">&#34;pip install -r requirements.txt &amp;&amp; pip install pytest &amp;&amp; pytest&#34;</span>
+
+  - <span style="color:#ff79c6">name</span>: <span style="color:#f1fa8c">&#34;gcr.io/google.com/cloudsdktool/cloud-sdk&#34;</span>
+    <span style="color:#ff79c6">args</span>:
+      [
+        <span style="color:#f1fa8c">&#34;gcloud&#34;</span>,
+        <span style="color:#f1fa8c">&#34;functions&#34;</span>,
+        <span style="color:#f1fa8c">&#34;deploy&#34;</span>,
+        <span style="color:#f1fa8c">&#34;func_1&#34;</span>,
+        <span style="color:#f1fa8c">&#34;--entry-point=hello&#34;</span>,
+        <span style="color:#f1fa8c">&#34;--region=us-central1&#34;</span>,
+        <span style="color:#f1fa8c">&#34;--source=.&#34;</span>,
+        <span style="color:#f1fa8c">&#34;--trigger-http&#34;</span>,
+        <span style="color:#f1fa8c">&#34;--runtime=python39&#34;</span>,
+      ]
+</code></pre></div><p>In order to deploy <strong>only</strong> the functions that have been changed between the current and last revision, we&rsquo;ll need
+to:</p>
+<ol>
+<li>Authenticate <code>gcloud</code>. This can be done through <a href="https://github.com/google-github-actions/setup-gcloud">this</a> action.
+We&rsquo;ll also need to pass GCP auth credentials in JSON format as a repository secret.</li>
+<li>Checkout the repository.</li>
+<li>Get a <code>git diff</code> between the current and previous revision and extract folder names.</li>
+<li>Traverse through all the folders containing changed files and run <code>gcloud builds submit</code>.</li>
+</ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#ff79c6">on</span>:
+  <span style="color:#ff79c6">push</span>:
+    <span style="color:#ff79c6">branches</span>: [main, master]
+
+<span style="color:#ff79c6">name</span>: deploy
+
+<span style="color:#ff79c6">jobs</span>:
+  <span style="color:#ff79c6">deploy_functions</span>:
+    <span style="color:#ff79c6">runs-on</span>: ubuntu-latest
+
+    <span style="color:#ff79c6">steps</span>:
+      - <span style="color:#ff79c6">uses</span>: google-github-actions/setup-gcloud@master
+        <span style="color:#ff79c6">with</span>:
+          <span style="color:#ff79c6">project_id</span>: ${{ secrets.GCP_PROJECT_ID }}
+          <span style="color:#ff79c6">service_account_key</span>: ${{ secrets.GCP_SA_KEY }}
+          <span style="color:#ff79c6">export_default_credentials</span>: <span style="color:#ff79c6">true</span>
+
+      - <span style="color:#ff79c6">uses</span>: actions/checkout@v2
+        <span style="color:#ff79c6">with</span>:
+          <span style="color:#ff79c6">fetch-depth</span>: <span style="color:#bd93f9">2</span>
+
+      - <span style="color:#ff79c6">name</span>: Get git diff
+        <span style="color:#ff79c6">id</span>: git_diff
+        <span style="color:#ff79c6">shell</span>: bash
+        <span style="color:#ff79c6">run</span>: |<span style="color:#f1fa8c">
+</span><span style="color:#f1fa8c">          </span>          echo ::set-output name=diff::$(git diff --name-only --diff-filter=AMDR @~..@ | grep &#34;/&#34; | cut -d&#34;/&#34; -f1 | uniq)
+
+      - <span style="color:#ff79c6">name</span>: Run Cloud Build
+        <span style="color:#ff79c6">shell</span>: bash
+        <span style="color:#ff79c6">run</span>: |<span style="color:#f1fa8c">
+</span><span style="color:#f1fa8c">          for i in ${{ steps.git_diff.outputs.diff }}; do
+</span><span style="color:#f1fa8c">            # Don&#39;t run for CI foldere
+</span><span style="color:#f1fa8c">            if [[ &#34;$i&#34; == &#34;.github&#34; ]]; then
+</span><span style="color:#f1fa8c">              continue
+</span><span style="color:#f1fa8c">            fi
+</span><span style="color:#f1fa8c">            cd $i
+</span><span style="color:#f1fa8c">                gcloud builds submit
+</span><span style="color:#f1fa8c">            cd ..
+</span><span style="color:#f1fa8c">          done</span>          
+</code></pre></div><h2 id="limitations">Limitations</h2>
+<p>This approach is working just fine for my current needs. The main limitation I see is aroud mismatches between
+the python runtime version used by <code>ubuntu-latest</code> and the one used by a given function. I am not sure how likely
+this might manifest into an actual problem but it might be good to match both runtimes.</p>
+<h2 id="references">References</h2>
+<ul>
+<li>This post is based on adapting this <a href="https://stackoverflow.com/a/60562979/9046275">SO answer</a> to Github
+Actions. The answer explains a very similar approach on Google Cloud Build.</li>
+</ul>
+
+  
+  </div>
+</article>
+
+
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright  &copy; 2021  2021 Andrea dodet 
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+
+  </div>
+</body>
+
+<link rel="stylesheet" href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
+</html>
