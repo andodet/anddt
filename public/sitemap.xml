@@ -1,95 +1,59 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
     <loc>https://anddt.com/</loc>
     <lastmod>2021-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/categories/</loc>
     <lastmod>2021-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/ci-cloudfunctions-monorepo/</loc>
     <lastmod>2021-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/categories/gcp/</loc>
     <lastmod>2021-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/</loc>
     <lastmod>2021-11-29T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/tags/viz/</loc>
     <lastmod>2021-07-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/streamlit-git-viz/</loc>
     <lastmod>2021-07-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/categories/python/</loc>
     <lastmod>2021-07-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/tags/</loc>
     <lastmod>2021-07-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/categories/docker/</loc>
     <lastmod>2020-07-01T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/mock-environment/</loc>
     <lastmod>2020-07-01T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/shiny-plot-caching/</loc>
     <lastmod>2020-03-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/categories/r/</loc>
     <lastmod>2020-03-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/tags/shiny/</loc>
     <lastmod>2020-03-03T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/gcp-functions/</loc>
     <lastmod>2020-02-04T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/location-history/</loc>
     <lastmod>2020-01-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/tags/eda/</loc>
     <lastmod>2020-01-16T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
+  </url><url>
     <loc>https://anddt.com/post/experiments/</loc>
     <lastmod>2020-01-08T20:36:36+01:00</lastmod>
   </url>
-  
 </urlset>

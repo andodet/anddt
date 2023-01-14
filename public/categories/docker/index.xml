@@ -6,7 +6,7 @@
     <description>Recent content in docker on Andrea Dodet</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
-    <copyright>2021 Andrea dodet</copyright>
+    <copyright>Andrea dodet</copyright>
     <lastBuildDate>Wed, 01 Jul 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://anddt.com/categories/docker/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Setting up a data-playground with docker-compose and Faker</title>

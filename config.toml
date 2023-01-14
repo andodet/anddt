@@ -1,7 +1,7 @@
 baseURL = "https://anddt.com"
 title = "Andrea Dodet"
 theme = "cactus"
-copyright = "2021 Andrea dodet"
+copyright = "Andrea dodet"
 
 languageCode = "en-gb"
 hasCJKLanguage = true
@@ -12,14 +12,19 @@ enableRobotsTXT = true
 googleAnalytics = "UA-58930119-2"
 
 [params]
-colortheme = "light"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
+colortheme = "white"  # default: auto. light: light theme, dark: dark theme, auto: based on system.
 logo = "logo.png"  # if you have a logo png
 description = "Jotting down things I'd like to understand"
 showAllPostsOnHomePage = true
 postOnHomePage = 15
 license = ""  # CC License
 rss = true
-css = ["custom.css"]
+css = ["css/custom.css"]
+
+[[menu.main]]
+name = "Writings"
+url = "/post"
+weight = 1
 
 [params.comments]
 enabled = true
@@ -52,6 +57,6 @@ lineNoStart = 1
 lineNos = false
 lineNumbersInTable = true
 noClasses = true
-style = "dracula"
+style = "rrt"
 tabWidth = 4
 
