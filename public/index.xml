@@ -73,5 +73,15 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
       <description>Experiments I&amp;rsquo;ve always found well-written essays particularly fascinating, to the point that I&amp;rsquo;ve decided to experiment on finding a method to convey messages effectively that suits me. In order to feel committed, I purchased a domain on Google Domains (took 5 minutes in total and €15) and hosted this basic website. I have always used R at work and I am planning to transition from sales/acc. management roles to more analytical ones, This space will be used to collect gotchas and observations I find interesting through this path.</description>
     </item>
     
+    <item>
+      <title></title>
+      <link>https://anddt.com/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://anddt.com/projects/</guid>
+      <description>Here&amp;rsquo;s a list of things (updated infrequently) that made it to a &amp;ldquo;presentable&amp;rdquo; stage:
+ git-overview | post: Streamlit dashboard to show high-level metrics and activity for git repostories. googlePubsubR: A simple R interface for Google Cloud Pub/Sub, also available on CRAN.  </description>
+    </item>
+    
   </channel>
 </rss>

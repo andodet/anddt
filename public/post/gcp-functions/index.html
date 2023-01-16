@@ -32,10 +32,10 @@ I initially hosted this script as a crontab job on my old Macbook Air that sits 
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.c05d68261bf086a9d7713c4f8a6215a3601608e267a816a7ee58f139b3d1aae51222aae2081c8e0c6bd35e1334773b7a16283022f31f92afd93bb37e5e822e66.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
 
   
-   <link rel="stylesheet" href="https://anddt.com/css/custom.css"> 
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
   
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -87,6 +87,8 @@ if (!doNotTrack) {
       </li>
       
         <li><a href="/post">Writings</a></li>
+      
+        <li><a href="/projects">Projects</a></li>
       
     </ul>
   </div>
@@ -153,10 +155,10 @@ usage limits (at the time of writing):</p>
 <p>In order to successfully host my function to the cloud, my original script needed couple adjustments.
 First, as the function will be invoked by a <code>GET</code> request, I had to add <code>request</code> as an argument of
 my main function in order to make it callable.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00">def</span> <span style="color:#ff0">main</span>(request):
-    <span style="color:#0f0"># Do stuff</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>(request):
+    <span style="color:#75715e"># Do stuff</span>
 
-<span style="color:#f00">if</span> __name__ ==  <span style="color:#87ceeb">&#34;__main__&#34;</span>:
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span>  <span style="color:#e6db74">&#34;__main__&#34;</span>:
     main()
 </code></pre></div><p>Secondly, <a href="https://gspread.readthedocs.io/en/latest/"><code>gspread</code></a> (Python module to interact with
 Google Sheets) requires a json file with API auth keys for authentication. I have put that file in a storage bucket and
@@ -194,30 +196,30 @@ doesn&rsquo;t require to implement auth flows in the function.</li>
 will be killed if it exceeds timeout (default is 30s). It is worth pointing out that Cloud Functions have an
 <strong>execution time limit of 9 minutes</strong>.</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions deploy so-parse <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --memory 128MB <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --runtime python37 <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --entry-point main <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --source https://source.developers.google.com/projects/your-project/repos/repo-name/path/to/function <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --timeout <span style="color:#f60">300</span> <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --set-env-vars <span style="color:#eedd82">JOB_SHEET_ID</span>=<span style="color:#87ceeb">&#34;your-ghseet-id&#34;</span> <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --set-env-vars <span style="color:#eedd82">SHEET_NAME</span>=<span style="color:#87ceeb">&#34;worksheet-name&#34;</span> <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --set-env-vars <span style="color:#eedd82">GOOGLE_AUTH_KEY</span>=<span style="color:#87ceeb">&#34;json-file-with-google-auth-keys.json&#34;</span> <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --trigger-http <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --no-allow-unauthenticated
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions deploy so-parse <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --memory 128MB <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --runtime python37 <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --entry-point main <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --source https://source.developers.google.com/projects/your-project/repos/repo-name/path/to/function <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --timeout <span style="color:#ae81ff">300</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --set-env-vars JOB_SHEET_ID<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;your-ghseet-id&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --set-env-vars SHEET_NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;worksheet-name&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --set-env-vars GOOGLE_AUTH_KEY<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;json-file-with-google-auth-keys.json&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --trigger-http <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --no-allow-unauthenticated
 </code></pre></div><p>In order to automatically run the function at set intervals, it is possible to rely on <a href="https://cloud.google.com/scheduler/">Cloud Scheduler</a>.
 The main logic is to set up a cron job that will fire a <code>GET</code> request to the function&rsquo;s trigger url
 at a given interval.<br>
 Before setting the cron job up we need to create a service account and make sure it has the right
 permissions to invoke Cloud Functions.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud iam service-accounts create cloud-scheduler
-</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions add-iam-policy-binding <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --member=serviceAccount:cloud-scheduler@your-project.iam.gserviceaccount.com <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --role=roles/cloudfunctions.invoker so-parse
-</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud scheduler jobs create http stack-scrape <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --schedule=<span style="color:#87ceeb">&#34;*/3 * * * *&#34;</span> <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --uri=https://your-func-trigger-url <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    --oidc-service-account-email=cloud-scheduler@your-project.iam.gserviceaccount.com 
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud iam service-accounts create cloud-scheduler
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud functions add-iam-policy-binding <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --member<span style="color:#f92672">=</span>serviceAccount:cloud-scheduler@your-project.iam.gserviceaccount.com <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --role<span style="color:#f92672">=</span>roles/cloudfunctions.invoker so-parse
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">gcloud scheduler jobs create http stack-scrape <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --schedule<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;*/3 * * * *&#34;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --uri<span style="color:#f92672">=</span>https://your-func-trigger-url <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --oidc-service-account-email<span style="color:#f92672">=</span>cloud-scheduler@your-project.iam.gserviceaccount.com 
 </code></pre></div><p>To confirm that everything went according to plan I quickly peeked a the logs after waiting for
 a few minutes (to be sure the function actually had the time to run at least once).</p>
 <!-- raw HTML omitted -->
@@ -236,6 +238,8 @@ a few minutes (to be sure the function actually had the time to run at least onc
       <ul>
          
         <li><a href="/post">Writings</a></li>
+         
+        <li><a href="/projects">Projects</a></li>
         
       </ul>
     </nav>

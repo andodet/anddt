@@ -30,10 +30,10 @@
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.c05d68261bf086a9d7713c4f8a6215a3601608e267a816a7ee58f139b3d1aae51222aae2081c8e0c6bd35e1334773b7a16283022f31f92afd93bb37e5e822e66.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
 
   
-   <link rel="stylesheet" href="https://anddt.com/css/custom.css"> 
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
   
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -86,6 +86,8 @@ if (!doNotTrack) {
       
         <li><a href="/post">Writings</a></li>
       
+        <li><a href="/projects">Projects</a></li>
+      
     </ul>
   </div>
 </header>
@@ -114,24 +116,24 @@ Landing on Hugo as a blogging platform has been somewhat of a natural decision:<
 Below the steps I&rsquo;ve followed to install hugo on my Linux machine (I went for the &lsquo;longish&rsquo; route as <code>sudo apt-get install hugo</code> was
 installing an old version which gave problem with the theme I chose). All the steps listed below are explained at length on <a href="https://gohugo.io/documentation/">Hugo docs</a>.</p>
 <p>To follow the steps above you need to download the right tarfile from your system from Hugo&rsquo;s <a href="https://github.com/gohugoio/hugo/releases">github repo</a></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#0f0"># Move downloaded tarball and extract it </span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># Move downloaded tarball and extract it </span>
 sudo mv ~/Donwloads/hugo_0.62.2_Linux-64bit.tar.gz /usr/local/bin/
 sudo tar -xvzf /usr/local/bin/hugo_0.62.2_Linux-64bit.tar.gz
 
-<span style="color:#0f0"># Check everything has worked</span>
+<span style="color:#75715e"># Check everything has worked</span>
 ➜  ~ hugo version
 Hugo Static Site Generator v0.62.2-83E50184 linux/amd64 BuildDate: 2020-01-05T18:51:38Z
 </code></pre></div><p>Now we can initialise our website and choose a theme (I went for <a href="https://github.com/cntrump/hugo-notepadium">hugo-notepadium</a> for its simplicity):</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#0f0"># Create new website</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># Create new website</span>
 cd ~/code
 hugo new site your_website_name
 
-<span style="color:#0f0"># Add hugo theme</span>
+<span style="color:#75715e"># Add hugo theme</span>
 cd your_website_name
 git init
 git submodule add https://github.com/cntrump/hugo-notepadium themes/hugo-notepadium
 
-<span style="color:#0f0"># Push your website to a github repo</span>
+<span style="color:#75715e"># Push your website to a github repo</span>
 git remote add origin https://github.com/your-username/your-repo.git
 git push -u origin master
 </code></pre></div><p>We can check everything has worked properly by launching our website locally with <code>hugo server</code>.<br>
@@ -191,6 +193,8 @@ Hosting a website is as simple as:</p>
       <ul>
          
         <li><a href="/post">Writings</a></li>
+         
+        <li><a href="/projects">Projects</a></li>
         
       </ul>
     </nav>

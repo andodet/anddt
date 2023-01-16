@@ -30,10 +30,10 @@
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.c05d68261bf086a9d7713c4f8a6215a3601608e267a816a7ee58f139b3d1aae51222aae2081c8e0c6bd35e1334773b7a16283022f31f92afd93bb37e5e822e66.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
 
   
-   <link rel="stylesheet" href="https://anddt.com/css/custom.css"> 
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
   
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -86,6 +86,8 @@ if (!doNotTrack) {
       
         <li><a href="/post">Writings</a></li>
       
+        <li><a href="/projects">Projects</a></li>
+      
     </ul>
   </div>
 </header>
@@ -117,7 +119,7 @@ You can find the repo on <a href="https://github.com/andodet/mock-dev-env">githu
 <p>The structure of the tool is fairly straightforward: any sub folder inside <code>local-dev/</code>
 contains a Dockerfile that will spawn a database (a MySQL instance in this case) and
 populate each table through dedicated Python scripts.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
 ├── docker-compose.cli.yaml
 ├── docker-compose.yaml
 ├── local-dev
@@ -139,25 +141,25 @@ process, with the only restriction of waiting for the db to be up before seeding
 entries. In order to wait for the db it will be enough to specify <code>depends_on</code> on the
 seeding service and <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py#L37">wait</a>
 for the db connection to be ready in the seeding scripts.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">version: <span style="color:#87ceeb">&#39;3&#39;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3&#39;</span>
 
-services:
-  mysql:
-    image: mariadb:10.5 
-    container_name: mysql_db
-    ports:
-      - <span style="color:#87ceeb">&#34;3306:3306&#34;</span>
-    expose:
-      - <span style="color:#87ceeb">&#34;3306&#34;</span>
-    environment:
-      MYSQL_ROOT_PASSWORD: <span style="color:#87ceeb">&#34;root&#34;</span>
-      MYSQL_DATABASE: <span style="color:#87ceeb">&#34;database&#34;</span>
+<span style="color:#f92672">services</span>:
+  <span style="color:#f92672">mysql</span>:
+    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">mariadb:10.5 </span>
+    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">mysql_db</span>
+    <span style="color:#f92672">ports</span>:
+      - <span style="color:#e6db74">&#34;3306:3306&#34;</span>
+    <span style="color:#f92672">expose</span>:
+      - <span style="color:#e6db74">&#34;3306&#34;</span>
+    <span style="color:#f92672">environment</span>:
+      <span style="color:#f92672">MYSQL_ROOT_PASSWORD</span>: <span style="color:#e6db74">&#34;root&#34;</span>
+      <span style="color:#f92672">MYSQL_DATABASE</span>: <span style="color:#e6db74">&#34;database&#34;</span>
 
-  mysql_seeding:
-    container_name: mysql_seeding
-    build: ./local-dev/mysql-seeding
-    depends_on:
-      - mysql  
+  <span style="color:#f92672">mysql_seeding</span>:
+    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">mysql_seeding</span>
+    <span style="color:#f92672">build</span>: <span style="color:#ae81ff">./local-dev/mysql-seeding</span>
+    <span style="color:#f92672">depends_on</span>:
+      - <span style="color:#ae81ff">mysql  </span>
 </code></pre></div><p>The repo offers a <code>docker-compose.cli.yaml</code> file with an additional test container that will
 take care of checking that all the tables have been set up properly. We can check
 everything works locally by pointing <code>docker-compose</code> to the alternate file with
@@ -297,67 +299,67 @@ a <em>users</em> and a <em>transactions</em> table structured as shown below.</p
 of built-in data providers to replicate pretty much any entry (emails, addresses, zip codes, etc.).
 As an example <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/mysql-seeding/seed_transactions.py">seed_transactions.py</a>
 will create 2.000 transactions for the same user ids created by <code>seed_users.py</code>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00">def</span> <span style="color:#ff0">insert_transactions</span>(self):
-    uids = self.get_users()
-    transactions = []
-    <span style="color:#f00">for</span> _ in range(<span style="color:#f60">2000</span>):
-        transaction = {
-            <span style="color:#87ceeb">&#34;order_id&#34;</span>: faker.pyint(min_value=<span style="color:#f60">1</span>, max_value=<span style="color:#f60">9999</span>, step=<span style="color:#f60">1</span>),
-            <span style="color:#87ceeb">&#34;user_id&#34;</span>: faker.random.choice(uids),
-            <span style="color:#87ceeb">&#34;ts&#34;</span>: faker.date_time(),
-            <span style="color:#87ceeb">&#34;amount&#34;</span>: faker.pydecimal(
-                left_digits=<span style="color:#f60">4</span>, right_digits=<span style="color:#f60">2</span>, min_value=<span style="color:#f60">1</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert_transactions</span>(self):
+    uids <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_users()
+    transactions <span style="color:#f92672">=</span> []
+    <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2000</span>):
+        transaction <span style="color:#f92672">=</span> {
+            <span style="color:#e6db74">&#34;order_id&#34;</span>: faker<span style="color:#f92672">.</span>pyint(min_value<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, max_value<span style="color:#f92672">=</span><span style="color:#ae81ff">9999</span>, step<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>),
+            <span style="color:#e6db74">&#34;user_id&#34;</span>: faker<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>choice(uids),
+            <span style="color:#e6db74">&#34;ts&#34;</span>: faker<span style="color:#f92672">.</span>date_time(),
+            <span style="color:#e6db74">&#34;amount&#34;</span>: faker<span style="color:#f92672">.</span>pydecimal(
+                left_digits<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>, right_digits<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, min_value<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
             ),
-            <span style="color:#87ceeb">&#34;currency_code&#34;</span>: faker.currency_code(),
-            <span style="color:#87ceeb">&#34;item&#34;</span>: faker.random.choice(constants[<span style="color:#87ceeb">&#39;products&#39;</span>]),
-            <span style="color:#87ceeb">&#34;is_premium&#34;</span>: faker.boolean(chance_of_getting_true=<span style="color:#f60">50</span>)
+            <span style="color:#e6db74">&#34;currency_code&#34;</span>: faker<span style="color:#f92672">.</span>currency_code(),
+            <span style="color:#e6db74">&#34;item&#34;</span>: faker<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>choice(constants[<span style="color:#e6db74">&#39;products&#39;</span>]),
+            <span style="color:#e6db74">&#34;is_premium&#34;</span>: faker<span style="color:#f92672">.</span>boolean(chance_of_getting_true<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>)
         }
-        transactions.append(transaction)
-    self.connection.execute(self.Transactions.insert(), transactions)
+        transactions<span style="color:#f92672">.</span>append(transaction)
+    self<span style="color:#f92672">.</span>connection<span style="color:#f92672">.</span>execute(self<span style="color:#f92672">.</span>Transactions<span style="color:#f92672">.</span>insert(), transactions)
 </code></pre></div><h2 id="testing-everything-works-fine">Testing everything works fine</h2>
 <p>In order to test that everything works flawlessly, a second docker-compose file is included
 in the repo. This file has the same content of the original one except for spawning an
 extra container that will run a python script (based on <code>pytest</code>) to check that the tables have
 been created correctly. Pytest <a href="https://docs.pytest.org/en/stable/fixture.html">fixtures</a>
 can be used to set up a db connection before launching the actual tests:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#f00">import</span> pytest
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-py" data-lang="py"><span style="color:#f92672">import</span> pytest
 
-@pytest.fixture
-<span style="color:#f00">def</span> <span style="color:#ff0">db_conn</span>():
-    <span style="color:#f00">from</span> sqlalchemy <span style="color:#f00">import</span> (
+<span style="color:#a6e22e">@pytest</span><span style="color:#f92672">.</span>fixture
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">db_conn</span>():
+    <span style="color:#f92672">from</span> sqlalchemy <span style="color:#f92672">import</span> (
         create_engine,
         engine
     )
-    <span style="color:#f00">from</span> sqlalchemy.ext.automap <span style="color:#f00">import</span> automap_base
-    <span style="color:#f00">from</span> sqlalchemy.exc <span style="color:#f00">import</span> InterfaceError
+    <span style="color:#f92672">from</span> sqlalchemy.ext.automap <span style="color:#f92672">import</span> automap_base
+    <span style="color:#f92672">from</span> sqlalchemy.exc <span style="color:#f92672">import</span> InterfaceError
 
-    config = {
-    <span style="color:#87ceeb">&#34;drivername&#34;</span>: <span style="color:#87ceeb">&#34;mysql+mysqlconnector&#34;</span>,
-    <span style="color:#87ceeb">&#34;username&#34;</span>: <span style="color:#87ceeb">&#34;root&#34;</span>,
-    <span style="color:#87ceeb">&#34;password&#34;</span>: <span style="color:#87ceeb">&#34;root&#34;</span>,
-    <span style="color:#87ceeb">&#34;host&#34;</span>: <span style="color:#87ceeb">&#34;mysql&#34;</span>,
-    <span style="color:#87ceeb">&#34;port&#34;</span>: <span style="color:#87ceeb">&#34;3306&#34;</span>,
-    <span style="color:#87ceeb">&#34;database&#34;</span>: <span style="color:#87ceeb">&#34;database&#34;</span>,
+    config <span style="color:#f92672">=</span> {
+    <span style="color:#e6db74">&#34;drivername&#34;</span>: <span style="color:#e6db74">&#34;mysql+mysqlconnector&#34;</span>,
+    <span style="color:#e6db74">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;root&#34;</span>,
+    <span style="color:#e6db74">&#34;password&#34;</span>: <span style="color:#e6db74">&#34;root&#34;</span>,
+    <span style="color:#e6db74">&#34;host&#34;</span>: <span style="color:#e6db74">&#34;mysql&#34;</span>,
+    <span style="color:#e6db74">&#34;port&#34;</span>: <span style="color:#e6db74">&#34;3306&#34;</span>,
+    <span style="color:#e6db74">&#34;database&#34;</span>: <span style="color:#e6db74">&#34;database&#34;</span>,
     }
 
-    Base = automap_base() 
+    Base <span style="color:#f92672">=</span> automap_base() 
 
-    <span style="color:#f00">try</span>:
-        engine = create_engine(engine.url.URL(**config))
-    <span style="color:#f00">except</span> InterfaceError:
-        print(<span style="color:#87ceeb">&#34;Something went wrong while connecting to MySQL db&#34;</span>)
+    <span style="color:#66d9ef">try</span>:
+        engine <span style="color:#f92672">=</span> create_engine(engine<span style="color:#f92672">.</span>url<span style="color:#f92672">.</span>URL(<span style="color:#f92672">**</span>config))
+    <span style="color:#66d9ef">except</span> InterfaceError:
+        print(<span style="color:#e6db74">&#34;Something went wrong while connecting to MySQL db&#34;</span>)
 
-    Base.prepare(engine, reflect=<span style="color:#f00">True</span>)
-    <span style="color:#f00">yield</span>  engine
-    print(<span style="color:#87ceeb">&#34;Disposing engine&#34;</span>)
-    engine.dispose()
+    Base<span style="color:#f92672">.</span>prepare(engine, reflect<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+    <span style="color:#66d9ef">yield</span>  engine
+    print(<span style="color:#e6db74">&#34;Disposing engine&#34;</span>)
+    engine<span style="color:#f92672">.</span>dispose()
 
 
-<span style="color:#f00">def</span> <span style="color:#ff0">test_user_table_exists</span>(db_conn):
-    <span style="color:#f00">assert</span> db_conn.has_table(<span style="color:#87ceeb">&#34;users&#34;</span>) == <span style="color:#f00">True</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test_user_table_exists</span>(db_conn):
+    <span style="color:#66d9ef">assert</span> db_conn<span style="color:#f92672">.</span>has_table(<span style="color:#e6db74">&#34;users&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">True</span>
 
-<span style="color:#f00">def</span> <span style="color:#ff0">test_tx_table_exists</span>(db_conn):
-    <span style="color:#f00">assert</span> db_conn.has_table(<span style="color:#87ceeb">&#34;transactions&#34;</span>) == <span style="color:#f00">True</span> 
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test_tx_table_exists</span>(db_conn):
+    <span style="color:#66d9ef">assert</span> db_conn<span style="color:#f92672">.</span>has_table(<span style="color:#e6db74">&#34;transactions&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">True</span> 
 </code></pre></div><h2 id="setting-up-github-actions">Setting up Github Actions</h2>
 <p>In order to make sure that no change will break the environment, the above mentioned
 docker-compose file can be integrated as a CI step as a Github Action. In a nutshell,
@@ -365,29 +367,29 @@ the action will take care of building the images, setting up the containers and 
 <a href="https://github.com/andodet/mock-dev-env/blob/master/local-dev/tests/tests.py"><code>tests.py</code></a> file.
 The workflow is pretty basic and it will be triggered both both on new pull requests
 and every time a commit will be pushed to master.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">name: run-tests
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">name</span>: <span style="color:#ae81ff">run-tests</span>
 
-on:
-  push:
-    branches: master
-  pull_request:
-    branches:
-      - master
+<span style="color:#f92672">on</span>:
+  <span style="color:#f92672">push</span>:
+    <span style="color:#f92672">branches</span>: <span style="color:#ae81ff">master</span>
+  <span style="color:#f92672">pull_request</span>:
+    <span style="color:#f92672">branches</span>:
+      - <span style="color:#ae81ff">master</span>
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+<span style="color:#f92672">jobs</span>:
+  <span style="color:#f92672">build</span>:
+    <span style="color:#f92672">runs-on</span>: <span style="color:#ae81ff">ubuntu-latest</span>
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build containers
-      run: docker-compose -f docker-compose.cli.yaml up -d
-    - name: Start db
-      run: docker start mysql_db
-    - name: Seed db mock entries
-      run: docker start mysql_seeding
-    - name: Run tests
-      run: docker start mysql_seeding_test --attach
+    <span style="color:#f92672">steps</span>:
+    - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">actions/checkout@v2</span>
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Build containers</span>
+      <span style="color:#f92672">run</span>: <span style="color:#ae81ff">docker-compose -f docker-compose.cli.yaml up -d</span>
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Start db</span>
+      <span style="color:#f92672">run</span>: <span style="color:#ae81ff">docker start mysql_db</span>
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Seed db mock entries</span>
+      <span style="color:#f92672">run</span>: <span style="color:#ae81ff">docker start mysql_seeding</span>
+    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Run tests</span>
+      <span style="color:#f92672">run</span>: <span style="color:#ae81ff">docker start mysql_seeding_test --attach</span>
 </code></pre></div><p>The <code>--attach</code> flag will send the output of the test script to stdout, allowing to be
 inspected further.</p>
 <p><img src="/images/2020-07-01-mock-env/gh_action_tests.png" alt=""></p>
@@ -417,6 +419,8 @@ needed have been set up correctly.</li>
       <ul>
          
         <li><a href="/post">Writings</a></li>
+         
+        <li><a href="/projects">Projects</a></li>
         
       </ul>
     </nav>

@@ -30,10 +30,10 @@
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.c05d68261bf086a9d7713c4f8a6215a3601608e267a816a7ee58f139b3d1aae51222aae2081c8e0c6bd35e1334773b7a16283022f31f92afd93bb37e5e822e66.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
 
   
-   <link rel="stylesheet" href="https://anddt.com/css/custom.css"> 
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
   
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -85,6 +85,8 @@ if (!doNotTrack) {
       </li>
       
         <li><a href="/post">Writings</a></li>
+      
+        <li><a href="/projects">Projects</a></li>
       
     </ul>
   </div>
@@ -156,13 +158,13 @@ to the user.</li>
 being a bit restrictive, looks flexible enough to churn out something decent in a relatively short amount of time.</p>
 <h2 id="project-structure">Project structure</h2>
 <p>The project has been structured in the following way:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">.
 ├── app
-│   ├── dashboard.py  <span style="color:#0f0"># the actual dashboard</span>
+│   ├── dashboard.py  <span style="color:#75715e"># the actual dashboard</span>
 │   ├── __init__.py
-│   ├── repo.py  <span style="color:#0f0"># some helper functions to download data</span>
-│   ├── ui.py  <span style="color:#0f0"># plot functions</span>
-│   └── utils.py  <span style="color:#0f0"># some dashboard-related helpers</span>
+│   ├── repo.py  <span style="color:#75715e"># some helper functions to download data</span>
+│   ├── ui.py  <span style="color:#75715e"># plot functions</span>
+│   └── utils.py  <span style="color:#75715e"># some dashboard-related helpers</span>
 ├── Dockerfile  
 ├── README.md
 └── requirements.txt
@@ -176,58 +178,58 @@ large apps to avoid having too much stuff in the same module</li>
 </ul>
 <p>Following the logic above, a very stripped down app might look like something in the lines of:</p>
 <p><a href="https://github.com/andodet/git-overview/blob/master/app/dashboard.py"><code>dashboard.py</code></a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00">import</span> streamlit <span style="color:#f00">as</span> st
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> streamlit <span style="color:#66d9ef">as</span> st
 
-<span style="color:#f00">import</span> utils
-<span style="color:#f00">import</span> ui
+<span style="color:#f92672">import</span> utils
+<span style="color:#f92672">import</span> ui
 
 
-<span style="color:#f00">def</span> <span style="color:#ff0">body</span>(data):
-    <span style="color:#0f0"># Grab the sidebar filter values declared in `ui.py`</span>
-    a = ui.get_sidebar(data)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">body</span>(data):
+    <span style="color:#75715e"># Grab the sidebar filter values declared in `ui.py`</span>
+    a <span style="color:#f92672">=</span> ui<span style="color:#f92672">.</span>get_sidebar(data)
 
-    <span style="color:#0f0"># Filter data</span>
-    data  = utils.filter_by_a(data, a)
+    <span style="color:#75715e"># Filter data</span>
+    data  <span style="color:#f92672">=</span> utils<span style="color:#f92672">.</span>filter_by_a(data, a)
 
-    <span style="color:#0f0"># Display dataframe in a container </span>
-    <span style="color:#f00">with</span> st.beta_container():
-        ui.write_table(data)
+    <span style="color:#75715e"># Display dataframe in a container </span>
+    <span style="color:#66d9ef">with</span> st<span style="color:#f92672">.</span>beta_container():
+        ui<span style="color:#f92672">.</span>write_table(data)
     
 
-<span style="color:#f00">if</span> __name__ == <span style="color:#87ceeb">&#34;__main__&#34;</span>:
-    data = utils.get_data()
-    body = body(data)
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+    data <span style="color:#f92672">=</span> utils<span style="color:#f92672">.</span>get_data()
+    body <span style="color:#f92672">=</span> body(data)
 </code></pre></div><p><a href="https://github.com/andodet/git-overview/blob/master/app/ui.py"><code>ui.py</code></a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00">import</span> streamlit <span style="color:#f00">as</span> st
-<span style="color:#f00">import</span> utils
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> streamlit <span style="color:#66d9ef">as</span> st
+<span style="color:#f92672">import</span> utils
 
-<span style="color:#f00">def</span> <span style="color:#ff0">get_sidebar</span>(data):
-    <span style="color:#0f0"># Just one filter as an example</span>
-    a_max = int(data[<span style="color:#87ceeb">&#39;A&#39;</span>].max())
-    a_min = int(data[<span style="color:#87ceeb">&#39;A&#39;</span>].min())
-    a = st.sidebar.slider(<span style="color:#87ceeb">&#34;Filter by A&#34;</span>, min_value=a_min, max_value=a_max)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_sidebar</span>(data):
+    <span style="color:#75715e"># Just one filter as an example</span>
+    a_max <span style="color:#f92672">=</span> int(data[<span style="color:#e6db74">&#39;A&#39;</span>]<span style="color:#f92672">.</span>max())
+    a_min <span style="color:#f92672">=</span> int(data[<span style="color:#e6db74">&#39;A&#39;</span>]<span style="color:#f92672">.</span>min())
+    a <span style="color:#f92672">=</span> st<span style="color:#f92672">.</span>sidebar<span style="color:#f92672">.</span>slider(<span style="color:#e6db74">&#34;Filter by A&#34;</span>, min_value<span style="color:#f92672">=</span>a_min, max_value<span style="color:#f92672">=</span>a_max)
 
-    <span style="color:#0f0"># NOTE: you can return a tuple if mulitple filters are applied</span>
-    <span style="color:#f00">return</span> a
+    <span style="color:#75715e"># NOTE: you can return a tuple if mulitple filters are applied</span>
+    <span style="color:#66d9ef">return</span> a
 
-<span style="color:#f00">def</span> <span style="color:#ff0">write_table</span>(data):
-    <span style="color:#f00">return</span> st.dataframe(data, height=<span style="color:#f60">1000</span>)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">write_table</span>(data):
+    <span style="color:#66d9ef">return</span> st<span style="color:#f92672">.</span>dataframe(data, height<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>)
 </code></pre></div><p><a href="https://github.com/andodet/git-overview/blob/master/app/utils.py"><code>utils.py</code></a>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00">import</span> streamlit <span style="color:#f00">as</span> st
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> streamlit <span style="color:#66d9ef">as</span> st
 
-<span style="color:#f00">import</span> pandas <span style="color:#f00">as</span> pd
-<span style="color:#f00">import</span> numpy <span style="color:#f00">as</span> np
-
-
-<span style="color:#f00">def</span> <span style="color:#ff0">get_data</span>():
-    <span style="color:#0f0"># Just generate some random data</span>
-    seed = np.random.RandomState(seed = <span style="color:#f60">1234</span>)
-    df = pd.DataFrame(seed.uniform(low=<span style="color:#f60">0</span>,high=<span style="color:#f60">100</span>,size=(<span style="color:#f60">100</span>, <span style="color:#f60">5</span>)), columns=list(<span style="color:#87ceeb">&#39;ABCDF&#39;</span>))
-    <span style="color:#f00">return</span> df
+<span style="color:#f92672">import</span> pandas <span style="color:#66d9ef">as</span> pd
+<span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
 
 
-<span style="color:#f00">def</span> <span style="color:#ff0">filter_by_a</span>(data, val):
-    <span style="color:#f00">return</span> data[data[<span style="color:#87ceeb">&#39;A&#39;</span>] &gt;= val]
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_data</span>():
+    <span style="color:#75715e"># Just generate some random data</span>
+    seed <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>RandomState(seed <span style="color:#f92672">=</span> <span style="color:#ae81ff">1234</span>)
+    df <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>DataFrame(seed<span style="color:#f92672">.</span>uniform(low<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>,high<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>,size<span style="color:#f92672">=</span>(<span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">5</span>)), columns<span style="color:#f92672">=</span>list(<span style="color:#e6db74">&#39;ABCDF&#39;</span>))
+    <span style="color:#66d9ef">return</span> df
+
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">filter_by_a</span>(data, val):
+    <span style="color:#66d9ef">return</span> data[data[<span style="color:#e6db74">&#39;A&#39;</span>] <span style="color:#f92672">&gt;=</span> val]
 </code></pre></div><p>I am sure there are plenty of better ways to organize code especially for larger projects (leveraging folders for instance), but the current structure
 has been more than enough for the size of this experiment.</p>
 <h2 id="overview-of-dplyr-activity">Overview of <code>dplyr</code> activity</h2>
@@ -256,27 +258,27 @@ You can check the final result at <a href="https://share.streamlit.io/andodet/gi
 <p>When expecting large traffic volumes on a dashboard, Google App Engine can come to the rescue. This solution (as most of cloud providers) is particularly appealing
 due to managed auto-scaling features. The first requirement for the deployment is to have a <a href="https://github.com/andodet/git-overview/blob/master/Dockerfile">Dockerfile</a>
 in place, it might be something along the following lines:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#f00">FROM</span><span style="color:#87ceeb"> python:3.9-slim-buster</span>
-
-<span style="color:#0f0"># The dashboard can pull remote git repos</span>
-<span style="color:#f00">RUN</span> apt-get update &amp;&amp; <span style="color:#87ceeb">\
-</span><span style="color:#87ceeb"></span>    apt-get -y install git
-
-<span style="color:#f00">COPY</span> . .
-
-<span style="color:#f00">RUN</span> pip install -r requirements.txt
-
-<span style="color:#f00">WORKDIR</span><span style="color:#87ceeb"> app/</span>
-
-<span style="color:#f00">EXPOSE</span><span style="color:#87ceeb"> 8501</span>
-<span style="color:#f00">ENTRYPOINT</span> [<span style="color:#87ceeb">&#34;streamlit&#34;</span>,<span style="color:#87ceeb">&#34;run&#34;</span>]
-<span style="color:#f00">CMD</span> [<span style="color:#87ceeb">&#34;dashboard.py&#34;</span>, <span style="color:#87ceeb">&#34;--server.port=8080&#34;</span>, <span style="color:#87ceeb">&#34;--server.address=0.0.0.0&#34;</span>]
-</code></pre></div><p>Secondly, a <code>app.yaml</code> file, containing deployment settings (auto-scaling settings will be set in this file) is needed:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">service: git-streamlit
-runtime: custom
-env: flex
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> python:3.9-slim-buster</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e"># The dashboard can pull remote git repos</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> apt-get update <span style="color:#f92672">&amp;&amp;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    apt-get -y install git<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . .<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> pip install -r requirements.txt<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> app/</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">EXPOSE</span><span style="color:#e6db74"> 8501</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENTRYPOINT</span> [<span style="color:#e6db74">&#34;streamlit&#34;</span>,<span style="color:#e6db74">&#34;run&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> [<span style="color:#e6db74">&#34;dashboard.py&#34;</span>, <span style="color:#e6db74">&#34;--server.port=8080&#34;</span>, <span style="color:#e6db74">&#34;--server.address=0.0.0.0&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Secondly, a <code>app.yaml</code> file, containing deployment settings (auto-scaling settings will be set in this file) is needed:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">service</span>: <span style="color:#ae81ff">git-streamlit</span>
+<span style="color:#f92672">runtime</span>: <span style="color:#ae81ff">custom</span>
+<span style="color:#f92672">env</span>: <span style="color:#ae81ff">flex</span>
 </code></pre></div><p>Finally, we can deploy everything with a simple one-liner:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ gcloud app deploy app.yaml
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ gcloud app deploy app.yaml
 </code></pre></div><p>After this step, we should find the url for the freshly deployed app in console output.</p>
 <h2 id="closing-remarks">Closing remarks</h2>
 <p>I&rsquo;ve found <code>streamlit</code> extremely intuitive and was surprised by the extremely small number of roadblocks I&rsquo;ve encountered. As of July 2021 I think the tool feels a bit
@@ -301,42 +303,42 @@ is identical to testing Shiny apps: open the app, take a screenshot and check it
 <p>After deploying the app on streamlit share I&rsquo;ve dropped a short post on <a href="https://www.reddit.com/r/Python/comments/ooyuec/visualize_git_repo_activity_using_streamlit/">r/Python</a> to get some
 traffic and observe the dashboard behaving in a semi-realistic scenario. From the start it was clear how somehting in the <code>app/repo.py</code> script was causing problems as the machine kept
 dying when computing metrics for largish repos. Through <a href="https://github.com/pyutils/line_profiler"><code>line_profiler</code></a> it is possible to inspect the execution time of every single line of code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ python -m kernprof -lv -u 0.1 test_bench.py
-processing repo with <span style="color:#f60">10</span> workers
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ python -m kernprof -lv -u 0.1 test_bench.py
+processing repo with <span style="color:#ae81ff">10</span> workers
 Wrote profile results to test_bench.py.lprof
 Timer unit: 0.1 s
 
 Total time: 6.87896 s
 File: test_bench.py
-Function: main at line <span style="color:#f60">8</span>
+Function: main at line <span style="color:#ae81ff">8</span>
 
-Line <span style="color:#0f0">#      Hits         Time  Per Hit   % Time  Line Contents</span>
-==============================================================
-     <span style="color:#f60">8</span>                                           @profile
-     <span style="color:#f60">9</span>                                           def main():
-    <span style="color:#f60">10</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0      <span style="color:#eedd82">repo_path</span> = <span style="color:#87ceeb">&#39;https://github.com/andodet/anddt.git&#39;</span>
-    <span style="color:#f60">11</span>         <span style="color:#f60">2</span>          0.0      0.0      0.0      <span style="color:#f00">for</span> w in n_workers:
-    <span style="color:#f60">12</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0          print(f<span style="color:#87ceeb">&#39;processing repo with {w} workers&#39;</span>)
-    <span style="color:#f60">13</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0          <span style="color:#eedd82">start</span> = time.time()
-    <span style="color:#f60">14</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0          <span style="color:#eedd82">repo</span> = Repository(repo_path, <span style="color:#eedd82">num_workers</span>=w)
-    <span style="color:#f60">15</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0          <span style="color:#eedd82">res</span> = []
-    <span style="color:#f60">16</span>        <span style="color:#f60">35</span>         26.4      0.8     38.3          <span style="color:#f00">for</span> commit in repo.traverse_commits():
-    <span style="color:#f60">17</span>        <span style="color:#f60">68</span>          0.0      0.0      0.0              res.append(
-    <span style="color:#f60">18</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                  {
-    <span style="color:#f60">19</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;hash&#34;</span>: commit.hash,
-    <span style="color:#f60">20</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;author&#34;</span>: commit.author.name,
-    <span style="color:#f60">21</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;committed_on&#34;</span>: commit.committer_date.strftime(<span style="color:#87ceeb">&#34;%Y-%m-%d %H:%M:%S&#34;</span>),
-    <span style="color:#f60">22</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;authored_on&#34;</span>: commit.author_date.strftime(<span style="color:#87ceeb">&#34;%Y-%m-%d %H:%M:%S&#34;</span>),
-    <span style="color:#f60">23</span>        <span style="color:#f60">34</span>          4.4      0.1      6.4                      <span style="color:#87ceeb">&#34;lines_added&#34;</span>: commit.insertions,
-    <span style="color:#f60">24</span>        <span style="color:#f60">34</span>          4.5      0.1      6.5                      <span style="color:#87ceeb">&#34;lines_deleted&#34;</span>: commit.deletions,
-    <span style="color:#f60">25</span>        <span style="color:#f60">34</span>          4.6      0.1      6.6                      <span style="color:#87ceeb">&#34;files_touched&#34;</span>: commit.files,
-    <span style="color:#f60">26</span>        <span style="color:#f60">34</span>         28.4      0.8     41.3                      <span style="color:#87ceeb">&#34;dmm_unit_complexity&#34;</span>: commit.dmm_unit_complexity,
-    <span style="color:#f60">27</span>        <span style="color:#f60">34</span>          0.5      0.0      0.8                      <span style="color:#87ceeb">&#34;dmm_unit_interfacing&#34;</span>: commit.dmm_unit_interfacing,
-    <span style="color:#f60">28</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;is_merge&#34;</span>: commit.merge,
-    <span style="color:#f60">29</span>        <span style="color:#f60">34</span>          0.0      0.0      0.0                      <span style="color:#87ceeb">&#34;message&#34;</span>: commit.msg,
-    <span style="color:#f60">30</span>                                                           }
-    <span style="color:#f60">31</span>                                                       )
-    <span style="color:#f60">32</span>         <span style="color:#f60">1</span>          0.0      0.0      0.0          <span style="color:#eedd82">end</span> = time.time()
+Line <span style="color:#75715e">#      Hits         Time  Per Hit   % Time  Line Contents</span>
+<span style="color:#f92672">==============================================================</span>
+     <span style="color:#ae81ff">8</span>                                           @profile
+     <span style="color:#ae81ff">9</span>                                           def main<span style="color:#f92672">()</span>:
+    <span style="color:#ae81ff">10</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0      repo_path <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;https://github.com/andodet/anddt.git&#39;</span>
+    <span style="color:#ae81ff">11</span>         <span style="color:#ae81ff">2</span>          0.0      0.0      0.0      <span style="color:#66d9ef">for</span> w in n_workers:
+    <span style="color:#ae81ff">12</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0          print<span style="color:#f92672">(</span>f<span style="color:#e6db74">&#39;processing repo with {w} workers&#39;</span><span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">13</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0          start <span style="color:#f92672">=</span> time.time<span style="color:#f92672">()</span>
+    <span style="color:#ae81ff">14</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0          repo <span style="color:#f92672">=</span> Repository<span style="color:#f92672">(</span>repo_path, num_workers<span style="color:#f92672">=</span>w<span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">15</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0          res <span style="color:#f92672">=</span> <span style="color:#f92672">[]</span>
+    <span style="color:#ae81ff">16</span>        <span style="color:#ae81ff">35</span>         26.4      0.8     38.3          <span style="color:#66d9ef">for</span> commit in repo.traverse_commits<span style="color:#f92672">()</span>:
+    <span style="color:#ae81ff">17</span>        <span style="color:#ae81ff">68</span>          0.0      0.0      0.0              res.append<span style="color:#f92672">(</span>
+    <span style="color:#ae81ff">18</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                  <span style="color:#f92672">{</span>
+    <span style="color:#ae81ff">19</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;hash&#34;</span>: commit.hash,
+    <span style="color:#ae81ff">20</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;author&#34;</span>: commit.author.name,
+    <span style="color:#ae81ff">21</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;committed_on&#34;</span>: commit.committer_date.strftime<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%Y-%m-%d %H:%M:%S&#34;</span><span style="color:#f92672">)</span>,
+    <span style="color:#ae81ff">22</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;authored_on&#34;</span>: commit.author_date.strftime<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%Y-%m-%d %H:%M:%S&#34;</span><span style="color:#f92672">)</span>,
+    <span style="color:#ae81ff">23</span>        <span style="color:#ae81ff">34</span>          4.4      0.1      6.4                      <span style="color:#e6db74">&#34;lines_added&#34;</span>: commit.insertions,
+    <span style="color:#ae81ff">24</span>        <span style="color:#ae81ff">34</span>          4.5      0.1      6.5                      <span style="color:#e6db74">&#34;lines_deleted&#34;</span>: commit.deletions,
+    <span style="color:#ae81ff">25</span>        <span style="color:#ae81ff">34</span>          4.6      0.1      6.6                      <span style="color:#e6db74">&#34;files_touched&#34;</span>: commit.files,
+    <span style="color:#ae81ff">26</span>        <span style="color:#ae81ff">34</span>         28.4      0.8     41.3                      <span style="color:#e6db74">&#34;dmm_unit_complexity&#34;</span>: commit.dmm_unit_complexity,
+    <span style="color:#ae81ff">27</span>        <span style="color:#ae81ff">34</span>          0.5      0.0      0.8                      <span style="color:#e6db74">&#34;dmm_unit_interfacing&#34;</span>: commit.dmm_unit_interfacing,
+    <span style="color:#ae81ff">28</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;is_merge&#34;</span>: commit.merge,
+    <span style="color:#ae81ff">29</span>        <span style="color:#ae81ff">34</span>          0.0      0.0      0.0                      <span style="color:#e6db74">&#34;message&#34;</span>: commit.msg,
+    <span style="color:#ae81ff">30</span>                                                           <span style="color:#f92672">}</span>
+    <span style="color:#ae81ff">31</span>                                                       <span style="color:#f92672">)</span>
+    <span style="color:#ae81ff">32</span>         <span style="color:#ae81ff">1</span>          0.0      0.0      0.0          end <span style="color:#f92672">=</span> time.time<span style="color:#f92672">()</span>
 
 </code></pre></div><p>From the output pasted above, it is clear that line <strong>26</strong> is the culprit here. Apparently, this method from <code>pydriller</code> computes
 <a href="https://pydriller.readthedocs.io/en/latest/deltamaintainability.html">Delta maintainability scores</a> for each commit. Commenting out that line has resulted in a 10x speedup in pulling the repo
@@ -363,6 +365,8 @@ and building the dataset.</p>
       <ul>
          
         <li><a href="/post">Writings</a></li>
+         
+        <li><a href="/projects">Projects</a></li>
         
       </ul>
     </nav>

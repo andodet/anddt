@@ -19,12 +19,17 @@ showAllPostsOnHomePage = true
 postOnHomePage = 15
 license = ""  # CC License
 rss = true
-css = ["css/custom.css"]
+css = ["custom.css"]
 
 [[menu.main]]
 name = "Writings"
 url = "/post"
 weight = 1
+
+[[menu.main]]
+name = "Projects"
+url = "/projects"
+weight = 2
 
 [params.comments]
 enabled = true
@@ -57,6 +62,6 @@ lineNoStart = 1
 lineNos = false
 lineNumbersInTable = true
 noClasses = true
-style = "rrt"
+style = "monokai"
 tabWidth = 4
 

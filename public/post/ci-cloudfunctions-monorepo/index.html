@@ -32,10 +32,10 @@
     
   
   
-  <link rel="stylesheet" href="https://anddt.com/css/styles.c05d68261bf086a9d7713c4f8a6215a3601608e267a816a7ee58f139b3d1aae51222aae2081c8e0c6bd35e1334773b7a16283022f31f92afd93bb37e5e822e66.css">
+  <link rel="stylesheet" href="https://anddt.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css">
 
   
-   <link rel="stylesheet" href="https://anddt.com/css/custom.css"> 
+   <link rel="stylesheet" href="https://anddt.com/custom.css"> 
   
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -87,6 +87,8 @@ if (!doNotTrack) {
       </li>
       
         <li><a href="/post">Writings</a></li>
+      
+        <li><a href="/projects">Projects</a></li>
       
     </ul>
   </div>
@@ -148,7 +150,7 @@ subfolders).</li>
 <p>Most of the times, Cloud Functions are so specific in scope (and implementation) that I feel they don&rsquo;t deserve a repo
 by themselves as this would probably create a proliferation of many small repositories. The way I usually organise
 project is to group functions by scope (e.g data-ingestion) or project.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
 ├── func_1
 │   ├── cloudbuild.yaml
 │   ├── main.py
@@ -176,81 +178,81 @@ project is to group functions by scope (e.g data-ingestion) or project.</p>
 <p>Given we&rsquo;re mixing up runtimes in different subfolders, we&rsquo;ll need to traverse through all folders and check for file
 extensions before invoking the correct test suite (e.g <code>gotest</code> or <code>pytest</code>). This ha been achieved with the following
 shell script:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#e5e5e5">#!/bin/sh
-</span><span style="color:#e5e5e5"></span>
-<span style="color:#0f0"># For every file in repo</span>
-<span style="color:#f00">for</span> i in <span style="color:#f00">$(</span>ls<span style="color:#f00">)</span>; <span style="color:#f00">do</span>
-  <span style="color:#0f0"># Check if it&#39;s a folder</span>
-  <span style="color:#f00">if</span> [[ -d <span style="color:#87ceeb">&#34;</span><span style="color:#eedd82">$i</span><span style="color:#87ceeb">&#34;</span> ]]; <span style="color:#f00">then</span>
-    cd <span style="color:#eedd82">$i</span>
-      <span style="color:#eedd82">is_py</span>=<span style="color:#f60">0</span>
-      <span style="color:#f00">for</span> f in <span style="color:#f00">$(</span>ls<span style="color:#f00">)</span>; <span style="color:#f00">do</span>
-        <span style="color:#0f0"># Check if it contains python files</span>
-        <span style="color:#f00">if</span> [[ <span style="color:#eedd82">$f</span> == *.py ]]; <span style="color:#f00">then</span>
-          <span style="color:#eedd82">is_py</span>=<span style="color:#f00">$((</span>is_py+1<span style="color:#f00">))</span>
-        <span style="color:#f00">fi</span>
-      <span style="color:#f00">done</span>
-      <span style="color:#0f0"># Run tests if it does</span>
-      <span style="color:#f00">if</span> ((<span style="color:#eedd82">is_py</span> == 0)); <span style="color:#f00">then</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e"># For every file in repo</span>
+<span style="color:#66d9ef">for</span> i in <span style="color:#66d9ef">$(</span>ls<span style="color:#66d9ef">)</span>; <span style="color:#66d9ef">do</span>
+  <span style="color:#75715e"># Check if it&#39;s a folder</span>
+  <span style="color:#66d9ef">if</span> <span style="color:#f92672">[[</span> -d <span style="color:#e6db74">&#34;</span>$i<span style="color:#e6db74">&#34;</span> <span style="color:#f92672">]]</span>; <span style="color:#66d9ef">then</span>
+    cd $i
+      is_py<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+      <span style="color:#66d9ef">for</span> f in <span style="color:#66d9ef">$(</span>ls<span style="color:#66d9ef">)</span>; <span style="color:#66d9ef">do</span>
+        <span style="color:#75715e"># Check if it contains python files</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">[[</span> $f <span style="color:#f92672">==</span> *.py <span style="color:#f92672">]]</span>; <span style="color:#66d9ef">then</span>
+          is_py<span style="color:#f92672">=</span><span style="color:#66d9ef">$((</span>is_py+1<span style="color:#66d9ef">))</span>
+        <span style="color:#66d9ef">fi</span>
+      <span style="color:#66d9ef">done</span>
+      <span style="color:#75715e"># Run tests if it does</span>
+      <span style="color:#66d9ef">if</span> <span style="color:#f92672">((</span>is_py <span style="color:#f92672">==</span> 0<span style="color:#f92672">))</span>; <span style="color:#66d9ef">then</span>
         cd .. 
-        <span style="color:#f00">continue</span>
-      <span style="color:#f00">else</span>
+        <span style="color:#66d9ef">continue</span>
+      <span style="color:#66d9ef">else</span>
         pip install -r requirements.txt
         pytest
         cd ..
-      <span style="color:#f00">fi</span>
-  <span style="color:#f00">fi</span>
-<span style="color:#f00">done</span>
+      <span style="color:#66d9ef">fi</span>
+  <span style="color:#66d9ef">fi</span>
+<span style="color:#66d9ef">done</span>
 </code></pre></div><p>This script will be executed through the following Github Action workflow file on every PR raised
 against target branches:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">on:
-  pull_request:
-    branches: [main, master, dev]
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">on</span>:
+  <span style="color:#f92672">pull_request</span>:
+    <span style="color:#f92672">branches</span>: [<span style="color:#ae81ff">main, master, dev]</span>
 
-name: pytest
+<span style="color:#f92672">name</span>: <span style="color:#ae81ff">pytest</span>
 
-jobs:
-  deploy_functions:
-    runs-on: ubuntu-latest
+<span style="color:#f92672">jobs</span>:
+  <span style="color:#f92672">deploy_functions</span>:
+    <span style="color:#f92672">runs-on</span>: <span style="color:#ae81ff">ubuntu-latest</span>
 
-    steps:
-      - uses: actions/checkout@v2
+    <span style="color:#f92672">steps</span>:
+      - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">actions/checkout@v2</span>
 
-      - name: install_pytest
-        shell: bash
-        run: |<span style="color:#87ceeb">
-</span><span style="color:#87ceeb">          </span>          pip install pytest
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">install_pytest</span>
+        <span style="color:#f92672">shell</span>: <span style="color:#ae81ff">bash</span>
+        <span style="color:#f92672">run</span>: |<span style="color:#e6db74">
+</span><span style="color:#e6db74">          </span>          <span style="color:#ae81ff">pip install pytest</span>
 
-      - name: pytest
-        shell: bash
-        run: |<span style="color:#87ceeb">
-</span><span style="color:#87ceeb">          chmod +x &#34;${GITHUB_WORKSPACE}/.github/pytest_run.sh&#34;
-</span><span style="color:#87ceeb">          source ${GITHUB_WORKSPACE}/.github/pytest_run.sh</span>          
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">pytest</span>
+        <span style="color:#f92672">shell</span>: <span style="color:#ae81ff">bash</span>
+        <span style="color:#f92672">run</span>: |<span style="color:#e6db74">
+</span><span style="color:#e6db74">          chmod +x &#34;${GITHUB_WORKSPACE}/.github/pytest_run.sh&#34;
+</span><span style="color:#e6db74">          source ${GITHUB_WORKSPACE}/.github/pytest_run.sh</span>          
 
 </code></pre></div><h3 id="deployment">Deployment</h3>
 <p>Deployment will be achieved by using Cloud Build: each subfolder will contain a <code>cloudbuild.yaml</code> file that will
 define how the function should be deployed. This file will contain all the function-specific deployment parameters
 (e.g runtime, invocation method, etc.). To be extra cautious, we will re-run tests before deploying:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">steps:
-  - name: <span style="color:#87ceeb">&#34;docker.io/library/python:3.7&#34;</span>
-    id: Test
-    entrypoint: /bin/sh
-    args:
-      - -c
-      - <span style="color:#87ceeb">&#34;pip install -r requirements.txt &amp;&amp; pip install pytest &amp;&amp; pytest&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">steps</span>:
+  - <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;docker.io/library/python:3.7&#34;</span>
+    <span style="color:#f92672">id</span>: <span style="color:#ae81ff">Test</span>
+    <span style="color:#f92672">entrypoint</span>: <span style="color:#ae81ff">/bin/sh</span>
+    <span style="color:#f92672">args</span>:
+      - -<span style="color:#ae81ff">c</span>
+      - <span style="color:#e6db74">&#34;pip install -r requirements.txt &amp;&amp; pip install pytest &amp;&amp; pytest&#34;</span>
 
-  - name: <span style="color:#87ceeb">&#34;gcr.io/google.com/cloudsdktool/cloud-sdk&#34;</span>
-    args:
+  - <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;gcr.io/google.com/cloudsdktool/cloud-sdk&#34;</span>
+    <span style="color:#f92672">args</span>:
       [
-        <span style="color:#87ceeb">&#34;gcloud&#34;</span>,
-        <span style="color:#87ceeb">&#34;functions&#34;</span>,
-        <span style="color:#87ceeb">&#34;deploy&#34;</span>,
-        <span style="color:#87ceeb">&#34;func_1&#34;</span>,
-        <span style="color:#87ceeb">&#34;--entry-point=hello&#34;</span>,
-        <span style="color:#87ceeb">&#34;--region=us-central1&#34;</span>,
-        <span style="color:#87ceeb">&#34;--source=.&#34;</span>,
-        <span style="color:#87ceeb">&#34;--trigger-http&#34;</span>,
-        <span style="color:#87ceeb">&#34;--runtime=python39&#34;</span>,
+        <span style="color:#e6db74">&#34;gcloud&#34;</span>,
+        <span style="color:#e6db74">&#34;functions&#34;</span>,
+        <span style="color:#e6db74">&#34;deploy&#34;</span>,
+        <span style="color:#e6db74">&#34;func_1&#34;</span>,
+        <span style="color:#e6db74">&#34;--entry-point=hello&#34;</span>,
+        <span style="color:#e6db74">&#34;--region=us-central1&#34;</span>,
+        <span style="color:#e6db74">&#34;--source=.&#34;</span>,
+        <span style="color:#e6db74">&#34;--trigger-http&#34;</span>,
+        <span style="color:#e6db74">&#34;--runtime=python39&#34;</span>,
       ]
 </code></pre></div><p>In order to deploy <strong>only</strong> the functions that have been changed between the current and last revision, we&rsquo;ll need
 to:</p>
@@ -261,45 +263,45 @@ We&rsquo;ll also need to pass GCP auth credentials in JSON format as a repositor
 <li>Get a <code>git diff</code> between the current and previous revision and extract folder names.</li>
 <li>Traverse through all the folders containing changed files and run <code>gcloud builds submit</code>.</li>
 </ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">on:
-  push:
-    branches: [main, master]
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#f92672">on</span>:
+  <span style="color:#f92672">push</span>:
+    <span style="color:#f92672">branches</span>: [<span style="color:#ae81ff">main, master]</span>
 
-name: deploy
+<span style="color:#f92672">name</span>: <span style="color:#ae81ff">deploy</span>
 
-jobs:
-  deploy_functions:
-    runs-on: ubuntu-latest
+<span style="color:#f92672">jobs</span>:
+  <span style="color:#f92672">deploy_functions</span>:
+    <span style="color:#f92672">runs-on</span>: <span style="color:#ae81ff">ubuntu-latest</span>
 
-    steps:
-      - uses: google-github-actions/setup-gcloud@master
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: <span style="color:#f00">true</span>
+    <span style="color:#f92672">steps</span>:
+      - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">google-github-actions/setup-gcloud@master</span>
+        <span style="color:#f92672">with</span>:
+          <span style="color:#f92672">project_id</span>: <span style="color:#ae81ff">${{ secrets.GCP_PROJECT_ID }}</span>
+          <span style="color:#f92672">service_account_key</span>: <span style="color:#ae81ff">${{ secrets.GCP_SA_KEY }}</span>
+          <span style="color:#f92672">export_default_credentials</span>: <span style="color:#66d9ef">true</span>
 
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: <span style="color:#f60">2</span>
+      - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">actions/checkout@v2</span>
+        <span style="color:#f92672">with</span>:
+          <span style="color:#f92672">fetch-depth</span>: <span style="color:#ae81ff">2</span>
 
-      - name: Get git diff
-        id: git_diff
-        shell: bash
-        run: |<span style="color:#87ceeb">
-</span><span style="color:#87ceeb">          </span>          echo ::set-output name=diff::$(git diff --name-only --diff-filter=AMDR @~..@ | grep &#34;/&#34; | cut -d&#34;/&#34; -f1 | uniq)
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Get git diff</span>
+        <span style="color:#f92672">id</span>: <span style="color:#ae81ff">git_diff</span>
+        <span style="color:#f92672">shell</span>: <span style="color:#ae81ff">bash</span>
+        <span style="color:#f92672">run</span>: |<span style="color:#e6db74">
+</span><span style="color:#e6db74">          </span>          <span style="color:#ae81ff">echo ::set-output name=diff::$(git diff --name-only --diff-filter=AMDR @~..@ | grep &#34;/&#34; | cut -d&#34;/&#34; -f1 | uniq)</span>
 
-      - name: Run Cloud Build
-        shell: bash
-        run: |<span style="color:#87ceeb">
-</span><span style="color:#87ceeb">          for i in ${{ steps.git_diff.outputs.diff }}; do
-</span><span style="color:#87ceeb">            # Don&#39;t run for CI foldere
-</span><span style="color:#87ceeb">            if [[ &#34;$i&#34; == &#34;.github&#34; ]]; then
-</span><span style="color:#87ceeb">              continue
-</span><span style="color:#87ceeb">            fi
-</span><span style="color:#87ceeb">            cd $i
-</span><span style="color:#87ceeb">                gcloud builds submit
-</span><span style="color:#87ceeb">            cd ..
-</span><span style="color:#87ceeb">          done</span>          
+      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Run Cloud Build</span>
+        <span style="color:#f92672">shell</span>: <span style="color:#ae81ff">bash</span>
+        <span style="color:#f92672">run</span>: |<span style="color:#e6db74">
+</span><span style="color:#e6db74">          for i in ${{ steps.git_diff.outputs.diff }}; do
+</span><span style="color:#e6db74">            # Don&#39;t run for CI foldere
+</span><span style="color:#e6db74">            if [[ &#34;$i&#34; == &#34;.github&#34; ]]; then
+</span><span style="color:#e6db74">              continue
+</span><span style="color:#e6db74">            fi
+</span><span style="color:#e6db74">            cd $i
+</span><span style="color:#e6db74">                gcloud builds submit
+</span><span style="color:#e6db74">            cd ..
+</span><span style="color:#e6db74">          done</span>          
 </code></pre></div><h2 id="limitations">Limitations</h2>
 <p>This approach is working just fine for my current needs. The main limitation I see is aroud mismatches between
 the python runtime version used by <code>ubuntu-latest</code> and the one used by a given function. I am not sure how likely
@@ -324,6 +326,8 @@ Actions. The answer explains a very similar approach on Google Cloud Build.</li>
       <ul>
          
         <li><a href="/post">Writings</a></li>
+         
+        <li><a href="/projects">Projects</a></li>
         
       </ul>
     </nav>
